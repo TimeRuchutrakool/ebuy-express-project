@@ -13,8 +13,8 @@ datasource db {
 ////////////////////// User //////////////////////
 model User {
   id           Int          @id @default(autoincrement())
-  firstName    String
-  lastName     String
+  firstName    String       @map("first_name")
+  lastName     String       @map("last_name")
   email        String       @unique
   password     String
   point        Int          @default(0)
@@ -40,9 +40,9 @@ model Product {
   id             Int              @id @default(autoincrement())
   name           String
   price          Decimal          @db.Decimal(10, 2)
-  description    String
-  created_At     DateTime         @default(now()) @map("create_at")
-  avgRating      Float
+  description    String           @db.LongText
+  createdAt      DateTime         @default(now()) @map("create_at")
+  avgRating      Decimal          @db.Decimal(2, 1)
   sellerId       Int              @map("seller_id")
   users          User             @relation(fields: [sellerId], references: [id])
   typeId         Int              @map("type_id")
@@ -62,13 +62,14 @@ model Product {
 }
 
 model ProductImage {
-  id           Int        @id @default(autoincrement())
+  id           Int         @id @default(autoincrement())
   imageUrl     String
-  productId    Int? @map("product_id")
-  product      Product?   @relation(fields: [productId], references: [id])
-  bidProductId Int? @map("bid_producct_id")
+  productId    Int?        @map("product_id")
+  product      Product?    @relation(fields: [productId], references: [id])
+  bidProductId Int?        @map("bid_product_id")
   bidProduct   BidProduct? @relation(fields: [bidProductId], references: [id])
-  @@map("product_image")
+
+  @@map("product_images")
 }
 
 model Type {
@@ -90,6 +91,10 @@ model Brand {
 model Category {
   id      Int       @id @default(autoincrement())
   name    String
+  color   Boolean
+  shoes   Boolean
+  shirt   Boolean
+  pants   Boolean
   Product Product[]
 
   @@map("categories")
@@ -104,10 +109,12 @@ model ProductVariant {
   color       Color?     @relation(fields: [colorId], references: [id])
   shoeSizeId  Int?       @map("shoe_size_id")
   shoeSize    ShoeSize?  @relation(fields: [shoeSizeId], references: [id])
-  clothSizeId Int?
-  clothSize   ClothSize? @relation(fields: [clothSizeId], references: [id])
+  shirtSizeId Int?
+  shirtSize   ShirtSize? @relation(fields: [shirtSizeId], references: [id])
+  pantsSizeId Int?
+  pantsSize   PantsSize? @relation(fields: [pantsSizeId], references: [id])
 
-  @@map("product_variant")
+  @@map("product_variants")
 }
 
 model Color {
@@ -115,23 +122,31 @@ model Color {
   name           String
   ProductVariant ProductVariant[]
 
-  @@map("color")
+  @@map("colors")
 }
 
 model ShoeSize {
   id             Int              @id @default(autoincrement())
-  size           Int
+  name           String
   ProductVariant ProductVariant[]
 
-  @@map("shoe_size")
+  @@map("shoe_sizes")
 }
 
-model ClothSize {
+model ShirtSize {
   id             Int              @id @default(autoincrement())
   name           String
   ProductVariant ProductVariant[]
 
-  @@map("cloth_size")
+  @@map("shirt_sizes")
+}
+
+model PantsSize {
+  id             Int              @id @default(autoincrement())
+  name           String
+  ProductVariant ProductVariant[]
+
+  @@map("pants_sizes")
 }
 
 ////////////////////// Review //////////////////////
@@ -160,10 +175,10 @@ model CartItem {
 
 model WishItem {
   id        Int     @id @default(autoincrement())
-  user      User    @relation(fields: [buyerId], references: [id])
-  product   Product @relation(fields: [productId], references: [id])
   buyerId   Int     @map("buyer_id")
+  user      User    @relation(fields: [buyerId], references: [id])
   productId Int     @map("product_id")
+  product   Product @relation(fields: [productId], references: [id])
 
   @@map("wish_items")
 }
@@ -182,18 +197,18 @@ model Order {
 }
 
 model OrderItem {
-  id            Int         @id @default(autoincrement())
-  amount        Int
-  trackId       String?     @map("track_id")
-  nameLogistics String?     @map("name_logistics")
-  transactionId Int         @map("transaction_id")
-  paymentMethod String      @map("payment_method")
-  bidProductId  Int?        @map("bid_product_id")
-  orderId       Int         @map("order_id")
-  productId     Int?        @map("product_id")
-  order         Order       @relation(fields: [orderId], references: [id])
-  product       Product?    @relation(fields: [productId], references: [id])
-  bidId         BidProduct? @relation(fields: [bidProductId], references: [id])
+  id             Int         @id @default(autoincrement())
+  amount         Int
+  trackNum       String?     @map("track_number")
+  logisticsName  String?     @map("logistics_name")
+  transactionNum Int         @map("transaction_number")
+  paymentMethod  String      @map("payment_method")
+  orderId        Int         @map("order_id")
+  order          Order       @relation(fields: [orderId], references: [id])
+  bidProductId   Int?        @map("bid_product_id")
+  bidId          BidProduct? @relation(fields: [bidProductId], references: [id])
+  productId      Int?        @map("product_id")
+  product        Product?    @relation(fields: [productId], references: [id])
 }
 
 ////////////////////// Bid Product //////////////////////
@@ -204,17 +219,17 @@ model BidProduct {
   initialPrice Decimal        @db.Decimal(10, 2)
   startAt      DateTime       @map("start_at")
   endAt        DateTime       @map("end_at")
-  createAT     DateTime       @default(now()) @map("created_at")
-  updateAt     DateTime?      @map("update_at")
-  bidPrice     Decimal        @db.Decimal(10, 2)
+  createAt     DateTime       @default(now()) @map("created_at")
+  updateAt     DateTime?      @map("updated_at")
+  bidPrice     Decimal?       @db.Decimal(10, 2)
+  buyer        User?          @relation("buyer", fields: [buyerId], references: [id])
+  buyerId      Int?           @map("buyer_id")
   sellerId     Int            @map("seller_id")
   seller       User           @relation("seller", fields: [sellerId], references: [id])
-  buyer        User           @relation("buyer", fields: [buyerId], references: [id])
-  buyerId      Int            @map("buyer_id")
   OrderItem    OrderItem[]
   ProductImage ProductImage[]
 
-  @@map("bid_product")
+  @@map("bid_products")
 }
 
 ////////////////////// Chat Message //////////////////////
@@ -226,13 +241,13 @@ model Chatroom {
   seller   User      @relation("seller", fields: [sellerId], references: [id])
   Message  Message[]
 
-  @@map("chatroom")
+  @@map("chatrooms")
 }
 
 model Message {
   id         Int      @id @default(autoincrement())
   content    String
-  sendAt     DateTime @default(now())
+  sendAt     DateTime @default(now()) @map("send_at")
   chatroom   Chatroom @relation(fields: [chatroomId], references: [id])
   chatroomId Int      @map("chatroom_id")
   senderId   Int      @map("sender_id")
