@@ -13,7 +13,6 @@ registerSchema = Joi.object({
     .trim()
     .required()
     .strip(),
-  address: Joi.string().trim().optional(),
 });
 
 exports.registerSchema = registerSchema;
