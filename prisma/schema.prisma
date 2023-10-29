@@ -18,7 +18,7 @@ model User {
   email        String       @unique
   password     String
   point        Int          @default(0)
-  address      String
+  address      String?
   profileImage String?      @map("profile_image")
   products     Product[]
   review       Review[]
