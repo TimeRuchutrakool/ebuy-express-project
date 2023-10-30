@@ -18,7 +18,7 @@ model User {
   email        String       @unique
   password     String
   point        Int          @default(0)
-  address      String
+  address      String?
   profileImage String?      @map("profile_image")
   products     Product[]
   review       Review[]
@@ -152,7 +152,7 @@ model PantsSize {
 ////////////////////// Review //////////////////////
 model Review {
   id        Int     @id @default(autoincrement())
-  content   String
+  content   String?
   rating    Int
   productId Int     @map("product_id")
   product   Product @relation(fields: [productId], references: [id])
