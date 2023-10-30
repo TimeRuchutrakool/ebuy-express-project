@@ -6,7 +6,6 @@ const jwt = require("jsonwebtoken");
 
 exports.register = async (req, res, next) => {
   try {
-    
     const { value, error } = registerSchema.validate(req.body);
     if (error) {
       return next(error);
@@ -23,14 +22,13 @@ exports.register = async (req, res, next) => {
       {
         expiresIn: process.env.JWT_EXPIRE,
       }
-      );
-      delete user.password;
+    );
+    delete user.password;
     res.status(201).json({ accessToken, user });
   } catch (error) {
     next(error);
   }
 };
-
 
 exports.login = async (req, res, next) => {
   try {
@@ -59,7 +57,7 @@ exports.login = async (req, res, next) => {
       {
         expiresIn: process.env.JWT_EXPIRE,
       }
-      );
+    );
     delete user.password;
     res.status(201).json({ accessToken, user });
   } catch (error) {
@@ -71,6 +69,6 @@ exports.login = async (req, res, next) => {
   }
 };
 
-exports.getMe = (req,res)=>{
- res.status(200).json({user: req.user})
-}
+exports.getMe = (req, res) => {
+  res.status(200).json({ user: req.user });
+};
