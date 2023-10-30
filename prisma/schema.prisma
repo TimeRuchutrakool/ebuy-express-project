@@ -152,7 +152,7 @@ model PantsSize {
 ////////////////////// Review //////////////////////
 model Review {
   id        Int     @id @default(autoincrement())
-  content   String
+  content   String?
   rating    Int
   productId Int     @map("product_id")
   product   Product @relation(fields: [productId], references: [id])
