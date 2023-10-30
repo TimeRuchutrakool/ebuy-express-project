@@ -6,6 +6,7 @@ const jwt = require("jsonwebtoken");
 
 exports.register = async (req, res, next) => {
   try {
+    
     const { value, error } = registerSchema.validate(req.body);
     if (error) {
       return next(error);
@@ -22,13 +23,14 @@ exports.register = async (req, res, next) => {
       {
         expiresIn: process.env.JWT_EXPIRE,
       }
-    );
-    delete user.password;
+      );
+      delete user.password;
     res.status(201).json({ accessToken, user });
   } catch (error) {
     next(error);
   }
 };
+
 
 exports.login = async (req, res, next) => {
   try {
@@ -53,11 +55,11 @@ exports.login = async (req, res, next) => {
     const payload = { userId: user.id };
     const accessToken = jwt.sign(
       payload,
-      process.env.JWT_SECRET_KET || "dfkjianeiwnxcvlsc",
+      process.env.JWT_SECRET_KEY || "dfkjianeiwnxcvlsc",
       {
         expiresIn: process.env.JWT_EXPIRE,
       }
-    );
+      );
     delete user.password;
     res.status(201).json({ accessToken, user });
   } catch (error) {
@@ -68,3 +70,7 @@ exports.login = async (req, res, next) => {
     next(error);
   }
 };
+
+exports.getMe = (req,res)=>{
+ res.status(200).json({message:'success getMe',user: req.user})
+}

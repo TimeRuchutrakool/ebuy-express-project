@@ -42,7 +42,7 @@ model Product {
   price          Decimal          @db.Decimal(10, 2)
   description    String           @db.LongText
   createdAt      DateTime         @default(now()) @map("create_at")
-  avgRating      Decimal          @db.Decimal(2, 1)
+  avgRating      Decimal          @default(0) @db.Decimal(2, 1)
   sellerId       Int              @map("seller_id")
   users          User             @relation(fields: [sellerId], references: [id])
   typeId         Int              @map("type_id")
@@ -152,7 +152,7 @@ model PantsSize {
 ////////////////////// Review //////////////////////
 model Review {
   id        Int     @id @default(autoincrement())
-  content   String
+  content   String?
   rating    Int
   productId Int     @map("product_id")
   product   Product @relation(fields: [productId], references: [id])
