@@ -4,6 +4,8 @@ const { checkProductSchema } = require("../validators/product-validator");
 
 exports.createProduct = async (req, res, next) => {
   try {
+    req.body.sellerId = +req.user.id;
+
     const { value, error } = checkProductSchema.validate(req.body);
     if (error) {
       return next(createError("Incorrect information", 400));
