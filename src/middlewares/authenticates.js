@@ -10,7 +10,7 @@ module.exports = async (req, res, next) => {
     }
 
     const token = authorization.split(" ")[1];
-    console.log(token)
+
     const payload = jwt.verify(token, process.env.JWT_SECRET_KEY);
 
     const user = await prisma.user.findUnique({
