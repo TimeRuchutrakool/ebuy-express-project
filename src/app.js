@@ -6,6 +6,7 @@ const morgan = require("morgan");
 const authRoute = require("./routes/auth-route");
 const cartRoute = require("./routes/cart-route");
 const productRoute = require("./routes/product-route");
+const wishRoute = require("./routes/wish-route")
 
 const app = express();
 
@@ -16,6 +17,7 @@ app.use(express.json());
 app.use("/auth", authRoute);
 app.use("/cart",cartRoute);
 app.use("/product", productRoute);
+app.use("/wish",wishRoute)
 
 const PORT = process.env.PORT || "2000";
 
