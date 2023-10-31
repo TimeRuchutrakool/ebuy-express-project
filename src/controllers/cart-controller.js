@@ -2,6 +2,52 @@ const prisma = require("../models/prisma");
 const createError = require("../utils/create-error");
 const { removeItemInCartSchema, addIteminCartSchema } = require("../validators/cart-validators");
 
+
+
+exports.getCartItem = async (req,res,next)=>{
+  try {
+      const {id : userId} = req.user
+
+      // หา cart ที่ user เคย เพิ่มไว้
+      const getCartItem = await prisma.cartItem.findMany({
+        where : {
+          buyerId : userId
+        },
+        include : {
+          product : {
+            select : {
+              name : true,
+              description : true,
+              price : true,
+              brands: true,
+              users : {
+                select : {
+                  firstName : true
+                }
+              },
+              ProductImage : {
+                select : {
+                  imageUrl : true
+                }
+              }
+            }
+            }
+        }
+      })
+
+      // ถ้า user ไม่มี cartItem
+      if(getCartItem.length === 0 )
+      {
+        res.status(400).json({message : 'No item in cart'})
+      }
+
+      res.status(200).json({getCartItem})
+  } catch (error) {
+    next(error)
+  }
+}
+
+
 exports.addCartItems = async (req, res, next) => {
   try {
     const { id: userId } = req.user;
