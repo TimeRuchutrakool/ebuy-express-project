@@ -1,24 +1,31 @@
 const prisma = require("../models/prisma");
 const createError = require("../utils/create-error");
-const { removeItemInCartSchema } = require("../validators/cart-validators");
+const { removeItemInCartSchema, addIteminCartSchema } = require("../validators/cart-validators");
 
 exports.addCartItems = async (req, res, next) => {
   try {
     const { id: userId } = req.user;
-    const { productId, amount } = req.body;
+    // const { productId, amount } = req.body;
+      const {value,error} = addIteminCartSchema.validate(req.body)
+
+      if(error)
+      {
+        return next(error)
+      }
+
 
     let cartItem = await prisma.cartItem.findFirst({
       where: {
         buyerId: userId,
-        productId: +productId,
+        productId: +value.productId,
       },
     });
 
     if (!cartItem) {
       cartItem = await prisma.cartItem.create({
         data: {
-          productId: productId,
-          amount: amount,
+          productId: +value.productId,
+          amount: +value.amount,
           buyerId: userId,
         },
       });
@@ -29,7 +36,7 @@ exports.addCartItems = async (req, res, next) => {
         },
         data: {
           amount: {
-            increment: amount,
+            increment: +value.amount,
           },
         },
       });
