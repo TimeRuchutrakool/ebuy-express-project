@@ -1,4 +1,6 @@
 const prisma = require("../models/prisma");
+const createError = require("../utils/create-error");
+const {removeItemInCartSchema} = require('../validators/cart-validators')
 
 exports.addCartItems = async (req, res, next) => {
   try {
@@ -53,3 +55,28 @@ exports.addCartItems = async (req, res, next) => {
     next(error);
   }
 };
+
+
+//////////////////////////// Remove Product from Cart //////////////////////////////
+exports.removeItem = async (req,res,next)=>{
+  try {
+    const {value , error} = removeItemInCartSchema.validate(req.params)
+    // const removeItem = req.params.removeItem
+    const {id:userId} = req.user
+    if(error)
+    {
+      return next(createError('Can not remove Item',400))
+    }
+
+
+    await prisma.cartItem.deleteMany({
+      where : {
+        buyerId: userId,
+        productId: +value.removeItem,
+      }
+    })
+    res.status(200).json({message : "Remove Success"})
+  } catch (error) {
+    next(error)
+  }
+}
