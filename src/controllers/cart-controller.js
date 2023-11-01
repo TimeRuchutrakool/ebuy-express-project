@@ -11,7 +11,7 @@ exports.getCartItem = async (req,res,next)=>{
       // หา cart ที่ user เคย เพิ่มไว้
       const getCartItem = await prisma.cartItem.findMany({
         where : {
-          buyerId : userId
+          buyerId : userId,
         },
         include : {
           product : {
@@ -19,7 +19,11 @@ exports.getCartItem = async (req,res,next)=>{
               name : true,
               description : true,
               price : true,
-              brands: true,
+              brands: {
+                select : {
+                  name : true
+                }
+              },
               users : {
                 select : {
                   firstName : true
@@ -35,13 +39,26 @@ exports.getCartItem = async (req,res,next)=>{
         }
       })
 
+      const cartItem = getCartItem.map(product=>{
+        return {
+          id : product.product.productId,
+          name : product.product.name,
+          description : product.product.description,
+          price : product.product.price,
+          brands : product.product.brands.name,
+          seller : product.product.users.firstName,
+          imageUrl : product.product.ProductImage[0].imageUrl,
+          amount : product.amount
+        }
+      })
+
       // ถ้า user ไม่มี cartItem
       if(getCartItem.length === 0 )
       {
         res.status(400).json({message : 'No item in cart'})
       }
 
-      res.status(200).json({getCartItem})
+      res.status(200).json({cartItem})
   } catch (error) {
     next(error)
   }

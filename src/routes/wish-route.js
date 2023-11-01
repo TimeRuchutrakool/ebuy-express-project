@@ -5,6 +5,6 @@ const router = express.Router();
 
 
 router.get("/",authenticatedMiddleware,wishController.getWish);
-router.post("/:addWish",authenticatedMiddleware,wishController.addWish);
+router.post("/:productId",authenticatedMiddleware,wishController.addWish);
 
 module.exports = router;
