@@ -10,5 +10,6 @@ router.post(
   uploadMiddleware.array("image"),
   productController.createProduct
 );
+router.get("/searchedTitle/:searchedTitle",productController.searchProduct)
 
 module.exports = router;

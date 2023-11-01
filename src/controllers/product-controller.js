@@ -7,6 +7,7 @@ const {
   checkProductVariantSchema,
 } = require("../validators/product-validator");
 const { create } = require("domain");
+const { date } = require("joi");
 
 exports.createProduct = async (req, res, next) => {
   try {
@@ -86,6 +87,57 @@ exports.createProduct = async (req, res, next) => {
       "🚀 ~ file: product-controller.js:54 ~ exports.createProduct= ~ err:",
       err
     );
+    next(err);
+  }
+};
+
+exports.searchProduct = async (req, res, next) => {
+  try {
+    const { searchedTitle } = req.params;
+
+    const searchCategory = await prisma.category.findFirst({
+      where: {
+        name: searchedTitle,
+      },
+    });
+   
+    const searchBrand = await prisma.brand.findFirst({
+      where : {
+        name : searchedTitle
+      }
+    })
+    
+
+    const data = await prisma.product.findMany({
+      where: {
+        OR: [
+          { categoryId: searchCategory?.id },
+          {
+            name: {
+              contains: searchedTitle,
+            },
+          },
+          {
+            description: {
+              contains: searchedTitle,
+            },
+          },{
+            brandId: searchBrand?.id,
+          }
+        ],
+      },
+      include: {
+        ProductImage: {
+          select: {
+            imageUrl: true,
+          },
+        },
+      },
+    });
+    res.status(200).json({ data });
+
+  } catch (err) {
+    console.log("error  =", err);
     next(err);
   }
 };
