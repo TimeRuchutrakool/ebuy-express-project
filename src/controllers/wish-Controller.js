@@ -56,7 +56,7 @@ exports.addWish = async (req, res, next) => {
     let wishItem = await prisma.wishItem.findFirst({
       where: {
         buyerId: userId,
-        productId: +value.addWish,
+        productId: +value.productId,
       },
     });
 
@@ -65,7 +65,7 @@ exports.addWish = async (req, res, next) => {
       wishItem = await prisma.wishItem.create({
         data: {
           buyerId: userId,
-          productId: +value.addWish,
+          productId: +value.productId,
         },
       });
       res.status(200).json({ wishItem });
@@ -73,7 +73,7 @@ exports.addWish = async (req, res, next) => {
       await prisma.wishItem.deleteMany({
         where: {
           buyerId: userId,
-          productId: +value.addWish,
+          productId: +value.productId,
         },
       });
       res.status(200).json({ message: "remove wish success" });
