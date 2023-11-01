@@ -65,7 +65,7 @@ exports.createProduct = async (req, res, next) => {
 
     const productVariantArray = JSON.parse(sizeAndStock);
 
-    if (productVariantArray) {
+    if (productVariantArray.length) {
       const { value, error } =
         checkProductVariantSchema.validate(productVariantArray);
       if (error) {
@@ -82,10 +82,6 @@ exports.createProduct = async (req, res, next) => {
 
     res.status(201).json({ message: "Success" });
   } catch (err) {
-    console.log(
-      "🚀 ~ file: product-controller.js:54 ~ exports.createProduct= ~ err:",
-      err
-    );
     next(err);
   }
 };
