@@ -350,7 +350,7 @@ try {
           users :true
         }
       })
-      const response = product.map( (data)=>{
+      const productPopular = product.map( (data)=>{
         return {
           id : data.id,
           productName : data.name,
@@ -360,7 +360,7 @@ try {
           sellerLastName : data.users.lastName
         }
       })
-      res.status(200).json( response )
+      res.status(200).json( productPopular )
 } catch (err) {
   next(err)
 }
