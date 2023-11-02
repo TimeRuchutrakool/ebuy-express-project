@@ -2,7 +2,7 @@ const multer = require("multer");
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "pulic");
+    cb(null, "public");
   },
   filename: (req, file, cb) => {
     cb(

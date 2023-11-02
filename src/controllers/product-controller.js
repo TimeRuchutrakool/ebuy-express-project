@@ -9,10 +9,8 @@ const {
   checkUpdateProductVariantSchema,
   checkProductIdSchema,
 } = require("../validators/product-validator");
-const { create } = require("domain");
-const { date } = require("joi");
-const { off } = require("process");
-const { isNull } = require("util");
+
+const { removeDuplicates } = require("../utils/helper");
 
 exports.createProduct = async (req, res, next) => {
   try {
@@ -71,6 +69,7 @@ exports.createProduct = async (req, res, next) => {
     // createProductVariant
 
     const productVariantArray = JSON.parse(sizeAndStock);
+    console.log(productVariantArray);
 
     if (productVariantArray.length) {
       const { value, error } =
@@ -161,16 +160,15 @@ exports.updateProduct = async (req, res, next) => {
       data: images,
     });
 
-  
     // ตรวจสอบและอัพเดทข้อมูลตัวแปรของสินค้า
     if (value.sizeAndStock && value.sizeAndStock.length > 0) {
       const productVariantArray = JSON.parse(sizeAndStock);
 
       // ตรวจสอบข้อมูลตัวแปรของสินค้า
       const { value: variantValue, error: variantError } =
-      checkUpdateProductVariantSchema.validate(productVariantArray);
+        checkUpdateProductVariantSchema.validate(productVariantArray);
 
-        console.log(variantError)
+      console.log(variantError);
       if (variantError) {
         return next(
           createError("Incorrect information for product variants", 400)
@@ -239,16 +237,16 @@ exports.searchProduct = async (req, res, next) => {
       },
       include: {
         ProductImage: {
-          select : {
-            imageUrl : true
-          }
+          select: {
+            imageUrl: true,
+          },
         },
-        users : {
-          select :{
-            firstName : true,
-            lastName : true
-          }
-        }
+        users: {
+          select: {
+            firstName: true,
+            lastName: true,
+          },
+        },
       },
     });
 
@@ -264,13 +262,15 @@ exports.searchProduct = async (req, res, next) => {
   }
 };
 
-exports.getProductById = async (req, res, next) =>{
-try {
-      const { value ,error }= checkProductIdSchema.validate(req.params)
-      
-      if (error) {
-        return res.status(400).json({message :"This product is not available information"})
-      }
+exports.getProductById = async (req, res, next) => {
+  try {
+    const { value, error } = checkProductIdSchema.validate(req.params);
+
+    if (error) {
+      return res
+        .status(400)
+        .json({ message: "This product is not available information" });
+    }
 
     const params = Number(value.productId);
 
@@ -314,54 +314,95 @@ try {
       return copyVariant;
     });
 
-      
-      const productData ={
-        productId : product?.id,
-        productName : product.name,
-        productPrice : product.price,
-        productDescription : product.description,
-        productRating : product.avgRating,
-        sellerId : users.id,
-        sellerFirstName : users.firstName,
-        sellerLastName : users.lastName,
-        sellerImage: users?.profileImage,
-        typesName : types.name,
-        brandsName : brands.name,
-        productImage : ProductImage.map((el)=> el.imageUrl),
-        categoryName : category.name,
-        productVariant : productVariantsWithoutNull,
-        
-      }
-      
-  res.status(200).json({productData})
-} catch (err) {
-  console.log(err)
-  next(err)
-}
-}
+    let colors = new Set();
+    let sizes = new Set();
+    const sizeName = Object.keys(productVariantsWithoutNull[0])
+      .find((v) => v.includes("SizeId"))
+      .slice(0, -2);
+    for (const variant of productVariantsWithoutNull) {
+      colors.add(variant?.color);
+      sizes.add(variant[`${sizeName}`]);
+    }
+    colors = removeDuplicates(colors);
+    sizes = removeDuplicates(sizes);
 
-exports.getProductPopular = async (req, res, next) =>{
-try {
-     const product = await prisma.product.findMany({
-        take : 8,
-        orderBy :{
-          avgRating : "desc"
-        },include :{
-          users :true
-        }
-      })
-      const productPopular = product.map( (data)=>{
-        return {
-          id : data.id,
-          productName : data.name,
-          productPrice : data.price,
-          rating : data.avgRating,
-          sellerFirstName : data.users.firstName,
-          sellerLastName : data.users.lastName
-        }
-      })
-      res.status(200).json( productPopular )
-} catch (err) {
-  next(err)
-}
-}
+    const productData = {
+      id: product?.id,
+      name: product.name,
+      price: product.price,
+      description: product.description,
+      avgRating: +product.avgRating,
+      sellerId: users.id,
+      sellerFirstName: users.firstName,
+      sellerLastName: users.lastName,
+      sellerImage: users?.profileImage,
+      type: types.name,
+      brand: brands.name,
+      images: ProductImage.map((el) => {
+        return { id: el.id, imageUrl: el.imageUrl };
+      }),
+      productVariants: productVariantsWithoutNull,
+      options: { colors, sizes },
+    };
+
+    res.status(200).json({ product: productData });
+  } catch (err) {
+    console.log(err);
+    next(err);
+  }
+};
+
+exports.getProductPopular = async (req, res, next) => {
+  try {
+    const product = await prisma.product.findMany({
+      take: 8,
+      orderBy: {
+        avgRating: "desc",
+      },
+      include: {
+        users: true,
+      },
+    });
+    const productPopular = product.map((data) => {
+      return {
+        id: data.id,
+        productName: data.name,
+        productPrice: data.price,
+        rating: data.avgRating,
+        sellerFirstName: data.users.firstName,
+        sellerLastName: data.users.lastName,
+      };
+    });
+    res.status(200).json(productPopular);
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.createReview = async (req, res, next) => {
+  const buyerId = req.user.id;
+  console.log(req.body);
+  const review = await prisma.review.create({
+    data: { ...req.body, buyerId },
+  });
+  res.json({review});
+};
+
+exports.getReviewProduct = async (req, res, next) => {
+  const { productId } = req.params;
+  let reviews = await prisma.review.findMany({
+    where: { productId: +productId },
+    include: {
+      user: true,
+    },
+  });
+
+  const review = reviews.map((review) => {
+    return {
+      id: review.id,
+      content: review.content,
+    };
+  });
+
+  res.status(200).json({ reviews });
+};
