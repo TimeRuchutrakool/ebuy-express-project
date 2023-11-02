@@ -8,10 +8,11 @@ exports.getCartItem = async (req,res,next)=>{
   try {
       const {id : userId} = req.user
 
+  
       // หา cart ที่ user เคย เพิ่มไว้
       const getCartItem = await prisma.cartItem.findMany({
         where : {
-          buyerId : userId,
+          buyerId : +userId,
         },
         include : {
           product : {
@@ -34,9 +35,16 @@ exports.getCartItem = async (req,res,next)=>{
                   imageUrl : true
                 }
               }
-            }
-            }
-        }
+              
+                          
+            },       
+            },
+            color: true,
+            shoeSize: true,
+            shirtSize: true,
+            pantSize : true
+            
+        },
       })
 
       const cartItem = getCartItem.map(product=>{
@@ -47,8 +55,13 @@ exports.getCartItem = async (req,res,next)=>{
           price : product.product.price,
           brands : product.product.brands.name,
           seller : product.product.users.firstName,
-          imageUrl : product.product.ProductImage[0].imageUrl,
-          amount : product.amount
+          imageUrl : product?.product.ProductImage[0].imageUrl,
+          amount : product.amount,
+          color : product.color.name,
+          shoeSize : product.shoeSize?.name,
+          shirtSize : product.shirtSize?.name,
+          pantSize : product.pantSize?.name
+
         }
       })
 
@@ -60,27 +73,35 @@ exports.getCartItem = async (req,res,next)=>{
 
       res.status(200).json({cartItem})
   } catch (error) {
+    console.log(error)
     next(error)
   }
 }
 
-
+//////////////////////////////////////////////////////////////////////
 exports.addCartItems = async (req, res, next) => {
   try {
     const { id: userId } = req.user;
     // const { productId, amount } = req.body;
       const {value,error} = addIteminCartSchema.validate(req.body)
 
+      
       if(error)
       {
         return next(error)
       }
 
+      
 
     let cartItem = await prisma.cartItem.findFirst({
       where: {
         buyerId: userId,
         productId: +value.productId,
+        colorId : +value.colorId,
+        shirtSizeId : +value?.shirtSizeId,
+        shoeId : +value?.shoeId,
+        pantSizeId : +value?.pantSizeId
+
       },
     });
 
@@ -90,6 +111,10 @@ exports.addCartItems = async (req, res, next) => {
           productId: +value.productId,
           amount: +value.amount,
           buyerId: userId,
+          colorId : +value.colorId,
+          shirtSizeId : +value?.shirtSizeId,
+          shoeId : +value?.shoeId,
+          pantSizeId : +value?.pantSizeId
         },
       });
     } else {
