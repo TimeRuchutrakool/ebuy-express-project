@@ -347,9 +347,11 @@ try {
         orderBy :{
           avgRating : "desc"
         },include :{
-          users :true
+          users :true,
+          ProductImage: true,
         }
       })
+      
       const productPopular = product.map( (data)=>{
         return {
           id : data.id,
@@ -357,7 +359,8 @@ try {
           productPrice : data.price,
           rating : data.avgRating,
           sellerFirstName : data.users.firstName,
-          sellerLastName : data.users.lastName
+          sellerLastName : data.users.lastName,
+          productImage :data.ProductImage[0]?.imageUrl
         }
       })
       res.status(200).json( productPopular )
