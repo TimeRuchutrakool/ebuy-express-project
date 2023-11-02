@@ -8,7 +8,7 @@ const checkProductSchema = Joi.object({
   price: Joi.number().positive().required(),
   description: Joi.string().required(),
   sizeAndStock: Joi.required().allow(""),
-  productImgae: Joi.required()
+ 
 });
 
 exports.checkProductSchema = checkProductSchema;
@@ -49,3 +49,8 @@ const checkUpdateProductVariantSchema = Joi.array().items(
 );
 
 exports.checkUpdateProductVariantSchema = checkUpdateProductVariantSchema;
+const checkProductIdSchema = Joi.object({
+  productId : Joi.number().positive().required()
+  })
+
+exports.checkProductIdSchema = checkProductIdSchema
