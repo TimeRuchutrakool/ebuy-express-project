@@ -151,7 +151,7 @@ exports.searchProduct = async (req, res, next) => {
   }
 };
 
-exports.getProductById = async (req ,res , next) =>{
+exports.getProductById = async (req, res, next) =>{
 try {
       const { value ,error }= checkProductIdSchema.validate(req.params)
       
@@ -219,6 +219,32 @@ try {
   res.status(200).json({productData})
 } catch (err) {
   console.log(err)
+  next(err)
+}
+}
+
+exports.getProductPopular = async (req, res, next) =>{
+try {
+     const product = await prisma.product.findMany({
+        take : 8,
+        orderBy :{
+          avgRating : "desc"
+        },include :{
+          users :true
+        }
+      })
+      const response = product.map( (data)=>{
+        return {
+          id : data.id,
+          productName : data.name,
+          productPrice : data.price,
+          rating : data.avgRating,
+          sellerFirstName : data.users.firstName,
+          sellerLastName : data.users.lastName
+        }
+      })
+      res.status(200).json( response )
+} catch (err) {
   next(err)
 }
 }
