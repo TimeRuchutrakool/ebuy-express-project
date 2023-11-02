@@ -111,7 +111,7 @@ exports.searchProduct = async (req, res, next) => {
     })
     
 
-    const data = await prisma.product.findMany({
+    const product = await prisma.product.findMany({
       where: {
         OR: [
           { categoryId: searchCategory?.id },
@@ -137,7 +137,13 @@ exports.searchProduct = async (req, res, next) => {
         },
       },
     });
-    res.status(200).json({ data });
+    
+    const searchData = product.map( (el)=>{
+      el.ProductImage = el.ProductImage[0]
+      return el
+    })
+
+    res.status(200).json({ searchData });
 
   } catch (err) {
     console.log("error  =", err);
@@ -192,7 +198,7 @@ try {
       });
 
       
-      const data ={
+      const productData ={
         productId : product?.id,
         productName : product.name,
         productPrice : product.price,
@@ -210,7 +216,7 @@ try {
         
       }
       
-  res.status(200).json({data})
+  res.status(200).json({productData})
 } catch (err) {
   console.log(err)
   next(err)
