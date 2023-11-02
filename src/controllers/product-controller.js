@@ -146,15 +146,13 @@ exports.searchProduct = async (req, res, next) => {
   }
 };
 
-exports.getProductById = async (req, res, next) => {
-  try {
-    const { value, error } = checkProductIdSchema.validate(req.params);
-
-    if (error) {
-      return res
-        .status(400)
-        .json({ message: "This product is not available information" });
-    }
+exports.getProductById = async (req, res, next) =>{
+try {
+      const { value ,error }= checkProductIdSchema.validate(req.params)
+      
+      if (error) {
+        return res.status(400).json({message :"This product is not available information"})
+      }
 
     const params = Number(value.productId);
 
@@ -198,26 +196,54 @@ exports.getProductById = async (req, res, next) => {
       return copyVariant;
     });
 
-    const productData = {
-      productId: product?.id,
-      productName: product.name,
-      productPrice: product.price,
-      productDescription: product.description,
-      productRating: product.avgRating,
-      sellerId: users.id,
-      sellerFirstName: users.firstName,
-      sellerLastName: users.lastName,
-      sellerImage: users?.profileImage,
-      typesName: types.name,
-      brandsName: brands.name,
-      productImage: ProductImage.map((el) => el.imageUrl),
-      categoryName: category.name,
-      productVariant: productVariantsWithoutNull,
-    };
+      
+      const productData ={
+        productId : product?.id,
+        productName : product.name,
+        productPrice : product.price,
+        productDescription : product.description,
+        productRating : product.avgRating,
+        sellerId : users.id,
+        sellerFirstName : users.firstName,
+        sellerLastName : users.lastName,
+        sellerImage: users?.profileImage,
+        typesName : types.name,
+        brandsName : brands.name,
+        productImage : ProductImage.map((el)=> el.imageUrl),
+        categoryName : category.name,
+        productVariant : productVariantsWithoutNull,
+        
+      }
+      
+  res.status(200).json({productData})
+} catch (err) {
+  console.log(err)
+  next(err)
+}
+}
 
-    res.status(200).json({ productData });
-  } catch (err) {
-    console.log(err);
-    next(err);
-  }
-};
+exports.getProductPopular = async (req, res, next) =>{
+try {
+     const product = await prisma.product.findMany({
+        take : 8,
+        orderBy :{
+          avgRating : "desc"
+        },include :{
+          users :true
+        }
+      })
+      const response = product.map( (data)=>{
+        return {
+          id : data.id,
+          productName : data.name,
+          productPrice : data.price,
+          rating : data.avgRating,
+          sellerFirstName : data.users.firstName,
+          sellerLastName : data.users.lastName
+        }
+      })
+      res.status(200).json( response )
+} catch (err) {
+  next(err)
+}
+}
