@@ -83,10 +83,6 @@ exports.createProduct = async (req, res, next) => {
 
     res.status(201).json({ message: "Success" });
   } catch (err) {
-    console.log(
-      "🚀 ~ file: product-controller.js:54 ~ exports.createProduct= ~ err:",
-      err
-    );
     next(err);
   }
 };
@@ -100,13 +96,12 @@ exports.searchProduct = async (req, res, next) => {
         name: searchedTitle,
       },
     });
-   
+
     const searchBrand = await prisma.brand.findFirst({
-      where : {
-        name : searchedTitle
-      }
-    })
-    
+      where: {
+        name: searchedTitle,
+      },
+    });
 
     const data = await prisma.product.findMany({
       where: {
@@ -121,9 +116,10 @@ exports.searchProduct = async (req, res, next) => {
             description: {
               contains: searchedTitle,
             },
-          },{
+          },
+          {
             brandId: searchBrand?.id,
-          }
+          },
         ],
       },
       include: {
@@ -135,7 +131,6 @@ exports.searchProduct = async (req, res, next) => {
       },
     });
     res.status(200).json({ data });
-
   } catch (err) {
     console.log("error  =", err);
     next(err);
