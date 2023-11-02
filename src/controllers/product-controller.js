@@ -239,10 +239,16 @@ exports.searchProduct = async (req, res, next) => {
       },
       include: {
         ProductImage: {
-          select: {
-            imageUrl: true,
-          },
+          select : {
+            imageUrl : true
+          }
         },
+        users : {
+          select :{
+            firstName : true,
+            lastName : true
+          }
+        }
       },
     });
 
