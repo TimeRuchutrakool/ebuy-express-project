@@ -5,9 +5,12 @@ const { upload } = require("../utils/cloudinaryServices");
 const {
   checkProductSchema,
   checkProductVariantSchema,
+  checkProductIdSchema
 } = require("../validators/product-validator");
 const { create } = require("domain");
 const { date } = require("joi");
+const { off } = require("process");
+const { isNull } = require("util");
 
 exports.createProduct = async (req, res, next) => {
   try {
@@ -141,3 +144,75 @@ exports.searchProduct = async (req, res, next) => {
     next(err);
   }
 };
+
+exports.getProductById = async (req ,res , next) =>{
+try {
+      const { value ,error }= checkProductIdSchema.validate(req.params)
+      
+      if (error) {
+        return res.status(400).json({message :"This product is not available information"})
+      }
+
+      const params = Number(value.productId)
+      
+      const product = await prisma.product.findFirst({
+          where :{
+            id : params
+          },include :{
+            users :true,
+            types: true,
+            brands: true,
+            ProductImage : true,
+            ProductVariant: {
+              include :{
+                color: true,
+                shoeSize: true,
+                shirtSize: true,
+                pantsSize: true
+              }
+            },
+            category : true,
+            
+          }
+      })
+      if(!product) return res.status(400).json({message :"This product is not available information"})
+      const {users,types,brands,ProductImage,ProductVariant,category}= product
+     
+      function removeNullValues(obj) {
+        for (const key in obj) {
+          if (obj[key] === null) {
+            delete obj[key];
+          }
+        }
+      }
+      const productVariantsWithoutNull = ProductVariant.map((variant) => {
+        const copyVariant = { ...variant };
+        removeNullValues(copyVariant);
+        return copyVariant;
+      });
+
+      
+      const data ={
+        productId : product?.id,
+        productName : product.name,
+        productPrice : product.price,
+        productDescription : product.description,
+        productRating : product.avgRating,
+        sellerId : users.id,
+        sellerFirstName : users.firstName,
+        sellerLastName : users.lastName,
+        sellerImage: users?.profileImage,
+        typesName : types.name,
+        brandsName : brands.name,
+        productImage : ProductImage.map((el)=> el.imageUrl),
+        categoryName : category.name,
+        productVariant : productVariantsWithoutNull,
+        
+      }
+      
+  res.status(200).json({data})
+} catch (err) {
+  console.log(err)
+  next(err)
+}
+}
