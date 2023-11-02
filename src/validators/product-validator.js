@@ -7,7 +7,8 @@ checkProductSchema = Joi.object({
   name: Joi.string().required(),
   price: Joi.number().positive().required(),
   description: Joi.string().required(),
-  sizeAndStock: Joi.string().required(),
+  sizeAndStock: Joi.required().allow(""),
+  productImgae: Joi.required()
 });
 
 exports.checkProductSchema = checkProductSchema;
@@ -23,3 +24,9 @@ checkProductVariantSchema = Joi.array().items(
 );
 
 exports.checkProductVariantSchema = checkProductVariantSchema;
+
+const checkProductForEdit = Joi.object({
+  id : Joi.number().integer().positive().required()
+})
+
+exports.checkProductForEdit = checkProductForEdit;
