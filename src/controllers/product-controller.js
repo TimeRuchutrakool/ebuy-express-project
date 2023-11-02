@@ -5,7 +5,8 @@ const { upload } = require("../utils/cloudinaryServices");
 const {
   checkProductSchema,
   checkProductVariantSchema,
-  checkProductForEdit
+  checkUpdateProductSchema,
+  checkUpdateProductVariantSchema,
 } = require("../validators/product-validator");
 const { create } = require("domain");
 
@@ -15,6 +16,7 @@ exports.createProduct = async (req, res, next) => {
 
     const { value, error } = checkProductSchema.validate(req.body);
 
+    console.log(error);
     if (error) {
       return next(createError("Incorrect information", 400));
     }
@@ -67,7 +69,8 @@ exports.createProduct = async (req, res, next) => {
     const productVariantArray = JSON.parse(sizeAndStock);
 
     if (productVariantArray.length) {
-      const { value, error } = checkProductVariantSchema.validate(productVariantArray);
+      const { value, error } =
+        checkUpdateProductVariantSchema.validate(productVariantArray);
 
       if (error) {
         return next(createError("Incorrect information", 400));
@@ -89,106 +92,109 @@ exports.createProduct = async (req, res, next) => {
 };
 
 ///////////////////// แก้ไขรายการสินค้า /////////////////////
-exports.editProduct = async (req,res,next)=>{
+exports.updateProduct = async (req, res, next) => {
   try {
-    const sellerId = req.user.id;
-    const productId = req.params
-    const product = req.body
+    const { id: sellerId } = req.user;
+    const { value, error } = checkUpdateProductSchema.validate(req.body);
 
-    const obj=[{id : 1,imageUrl : "https://res.cloudinary.com/db3ltztig/image/upload/v1698824849/kt27ora01d8svi1liblj.jpg",productId : 10,bidProductId : null}]
-   
-    // console.log(req.body)
-    const {value,error} = checkProductSchema.validate(product)
-  
     if (error) {
       return next(createError("Incorrect information", 400));
     }
 
-    const {name,price,description,typeId,brandId,categoryId,sizeAndStock} = value;
-   
-    await prisma.product.update({
-      where : {
-        id : +productId.id
+    const {
+      name,
+      price,
+      description,
+      typeId,
+      brandId,
+      categoryId,
+      sizeAndStock,
+      productId,
+    } = value;
+    const product = await prisma.product.update({
+      where: {
+        id: +productId,
       },
-      data : {
-        sellerId,
+      data: {
         name,
         price,
         description,
-      }
+        typeId,
+        brandId,
+        categoryId,
+
+        createdAt: new Date(),
+      },
     });
 
     if (!req.files) {
       next(createError("product image is required", 400));
     }
 
+    // ถ้ามีไฟล์ ให้ลบที่ product ที่มีรูป
+    if (req.files.length !== 0) {
+      await prisma.productImage.deleteMany({
+        where: {
+          productId: productId,
+        },
+      });
+    }
+
     const urls = [];
     const files = req.files;
-    for(const file of files)
-    {
-      const {path} = file
+    for (const file of files) {
+      const { path } = file;
       const url = await upload(path);
       urls.push(url);
-      fs.unlink(path)
+      fs.unlink(path);
     }
+
     const images = [];
-    for (const image of urls) {
-      images.push({ imageUrl: image, productId: productId.id });
+    for (const imgae of urls) {
+      images.push({ imageUrl: imgae, productId: productId });
     }
-
- const {productImage} = req.body
-
- const parseProductImage = JSON.parse(productImage)
-
-    console.log(objImage)
-    
-
-    const newParseProductImage = parseProductImage.map(async (el,idx) => {
-     const returnValue = {...el}
-     returnValue.imageUrl = images[idx]
-
-     await prisma.productImage.update({
-      where: returnValue.id,
-      data:returnValue
-     })
+    await prisma.productImage.createMany({
+      data: images,
     });
 
+  
+    // ตรวจสอบและอัพเดทข้อมูลตัวแปรของสินค้า
+    if (value.sizeAndStock && value.sizeAndStock.length > 0) {
+      const productVariantArray = JSON.parse(sizeAndStock);
 
+      // ตรวจสอบข้อมูลตัวแปรของสินค้า
+      const { value: variantValue, error: variantError } =
+      checkUpdateProductVariantSchema.validate(productVariantArray);
 
-     // let imagePromise = []
-    // await Promise.all(imagePromise)
+        console.log(variantError)
+      if (variantError) {
+        return next(
+          createError("Incorrect information for product variants", 400)
+        );
+      }
 
-    // await prisma.productImage.updateMany({
-    //   where : {
-    //     productId : productId.id
-    //   },
-    //   data: {imageUrl: },
-    // });
-     
-    
-    // const productVariantArray = JSON.pase(sizeAndStock);
+      // ให้ลบรายการตัวแปรของสินค้าที่มี productId เท่ากับ updatedProduct.id
 
-    // if (productVariantArray.length) {
-    //   const { value, error } = checkProductVariantSchema.validate(productVariantArray);
-      
-    //   console.log(error)
-    //   if (error) {
-    //     return next(createError("Incorrect information", 400));
-    //   }
+      await prisma.productVariant.deleteMany({
+        where: {
+          productId: productId,
+        },
+      });
 
-    //   for (const optional of productVariantArray) {
-    //     optional.productId = product.id;
-    //   }
+      // ให้ทุกตัวแปรของสินค้ามี productId เป็น id ของ updatedProduct
+      for (const variant of productVariantArray) {
+        variant.productId = productId;
+      }
 
-    //   await prisma.productVariant.updateMany({
-    //     data: productVariantArray,
-    //   });
-    // }
+      // สร้างข้อมูลตัวแปรของสินค้าใหม่
+      await prisma.productVariant.createMany({
+        data: productVariantArray,
+      });
+    }
 
-    res.status(201).json({ message: "Success", updateProductImages });
-
+    res.status(201).json({ message: "Success" });
   } catch (error) {
-    console.log(error)
-    next(error)
+    console.log(error);
+    next(error);
   }
-}
+};

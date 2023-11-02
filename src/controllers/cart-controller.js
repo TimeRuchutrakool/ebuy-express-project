@@ -8,7 +8,7 @@ exports.getCartItem = async (req,res,next)=>{
   try {
       const {id : userId} = req.user
 
-      console.log(userId)
+  
       // หา cart ที่ user เคย เพิ่มไว้
       const getCartItem = await prisma.cartItem.findMany({
         where : {
@@ -85,7 +85,7 @@ exports.addCartItems = async (req, res, next) => {
     // const { productId, amount } = req.body;
       const {value,error} = addIteminCartSchema.validate(req.body)
 
-        console.log(error)
+      
       if(error)
       {
         return next(error)

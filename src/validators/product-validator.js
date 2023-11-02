@@ -1,6 +1,6 @@
 const Joi = require("joi");
 
-checkProductSchema = Joi.object({
+const checkProductSchema = Joi.object({
   typeId: Joi.number().integer().positive().required(),
   brandId: Joi.number().integer().positive().required(),
   categoryId: Joi.number().integer().positive().required(),
@@ -13,7 +13,7 @@ checkProductSchema = Joi.object({
 
 exports.checkProductSchema = checkProductSchema;
 
-checkProductVariantSchema = Joi.array().items(
+const checkProductVariantSchema = Joi.array().items(
   Joi.object({
     colorId: Joi.number().integer().positive().required(),
     shoeSizeId: Joi.number().integer().positive().optional(),
@@ -25,8 +25,27 @@ checkProductVariantSchema = Joi.array().items(
 
 exports.checkProductVariantSchema = checkProductVariantSchema;
 
-const checkProductForEdit = Joi.object({
-  id : Joi.number().integer().positive().required()
-})
+const checkUpdateProductSchema = Joi.object({
+  typeId: Joi.number().integer().positive().optional(),
+  brandId: Joi.number().integer().positive().optional(),
+  categoryId: Joi.number().integer().positive().optional(),
+  name: Joi.string().optional(),
+  productId : Joi.number().positive().integer(),
+  price: Joi.number().positive().optional(),
+  description: Joi.string().optional(),
+  sizeAndStock: Joi.optional().allow(""),
+});
 
-exports.checkProductForEdit = checkProductForEdit;
+exports.checkUpdateProductSchema = checkUpdateProductSchema;
+
+const checkUpdateProductVariantSchema = Joi.array().items(
+  Joi.object({
+    colorId: Joi.number().integer().positive().optional(),
+    shoeSizeId: Joi.number().integer().positive().optional(),
+    shirtSizeId: Joi.number().integer().positive().optional(),
+    pantsSizeId: Joi.number().integer().positive().optional(),
+    stock: Joi.number().integer().positive().optional(),
+  })
+);
+
+exports.checkUpdateProductVariantSchema = checkUpdateProductVariantSchema;

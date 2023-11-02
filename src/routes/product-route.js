@@ -5,6 +5,6 @@ const uploadMiddleware = require("../middlewares/upload");
 const router = express.Router();
 
 router.post("/",authenticatedMiddleware,uploadMiddleware.array("image"),productController.createProduct);
-router.patch('/editProduct/:id',authenticatedMiddleware,uploadMiddleware.array("image"),productController.editProduct)
+router.patch('/editProduct',authenticatedMiddleware,uploadMiddleware.array("image"),productController.updateProduct)
 
 module.exports = router;
