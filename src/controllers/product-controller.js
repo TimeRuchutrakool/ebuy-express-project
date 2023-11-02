@@ -5,7 +5,7 @@ const { upload } = require("../utils/cloudinaryServices");
 const {
   checkProductSchema,
   checkProductVariantSchema,
-  checkProductIdSchema
+  checkProductIdSchema,
 } = require("../validators/product-validator");
 const { create } = require("domain");
 const { date } = require("joi");
@@ -86,10 +86,6 @@ exports.createProduct = async (req, res, next) => {
 
     res.status(201).json({ message: "Success" });
   } catch (err) {
-    console.log(
-      "🚀 ~ file: product-controller.js:54 ~ exports.createProduct= ~ err:",
-      err
-    );
     next(err);
   }
 };
@@ -103,13 +99,12 @@ exports.searchProduct = async (req, res, next) => {
         name: searchedTitle,
       },
     });
-   
+
     const searchBrand = await prisma.brand.findFirst({
-      where : {
-        name : searchedTitle
-      }
-    })
-    
+      where: {
+        name: searchedTitle,
+      },
+    });
 
     const product = await prisma.product.findMany({
       where: {
@@ -124,9 +119,10 @@ exports.searchProduct = async (req, res, next) => {
             description: {
               contains: searchedTitle,
             },
-          },{
+          },
+          {
             brandId: searchBrand?.id,
-          }
+          },
         ],
       },
       include: {
@@ -137,14 +133,13 @@ exports.searchProduct = async (req, res, next) => {
         },
       },
     });
-    
-    const searchData = product.map( (el)=>{
-      el.ProductImage = el.ProductImage[0]
-      return el
-    })
+
+    const searchData = product.map((el) => {
+      el.ProductImage = el.ProductImage[0];
+      return el;
+    });
 
     res.status(200).json({ searchData });
-
   } catch (err) {
     console.log("error  =", err);
     next(err);
@@ -159,43 +154,47 @@ try {
         return res.status(400).json({message :"This product is not available information"})
       }
 
-      const params = Number(value.productId)
-      
-      const product = await prisma.product.findFirst({
-          where :{
-            id : params
-          },include :{
-            users :true,
-            types: true,
-            brands: true,
-            ProductImage : true,
-            ProductVariant: {
-              include :{
-                color: true,
-                shoeSize: true,
-                shirtSize: true,
-                pantsSize: true
-              }
-            },
-            category : true,
-            
-          }
-      })
-      if(!product) return res.status(400).json({message :"This product is not available information"})
-      const {users,types,brands,ProductImage,ProductVariant,category}= product
-     
-      function removeNullValues(obj) {
-        for (const key in obj) {
-          if (obj[key] === null) {
-            delete obj[key];
-          }
+    const params = Number(value.productId);
+
+    const product = await prisma.product.findFirst({
+      where: {
+        id: params,
+      },
+      include: {
+        users: true,
+        types: true,
+        brands: true,
+        ProductImage: true,
+        ProductVariant: {
+          include: {
+            color: true,
+            shoeSize: true,
+            shirtSize: true,
+            pantsSize: true,
+          },
+        },
+        category: true,
+      },
+    });
+    if (!product)
+      return res
+        .status(400)
+        .json({ message: "This product is not available information" });
+    const { users, types, brands, ProductImage, ProductVariant, category } =
+      product;
+
+    function removeNullValues(obj) {
+      for (const key in obj) {
+        if (obj[key] === null) {
+          delete obj[key];
         }
       }
-      const productVariantsWithoutNull = ProductVariant.map((variant) => {
-        const copyVariant = { ...variant };
-        removeNullValues(copyVariant);
-        return copyVariant;
-      });
+    }
+    const productVariantsWithoutNull = ProductVariant.map((variant) => {
+      const copyVariant = { ...variant };
+      removeNullValues(copyVariant);
+      return copyVariant;
+    });
 
       
       const productData ={
