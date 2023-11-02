@@ -1,6 +1,6 @@
 const Joi = require("joi");
 
-checkProductSchema = Joi.object({
+const checkProductSchema = Joi.object({
   typeId: Joi.number().integer().positive().required(),
   brandId: Joi.number().integer().positive().required(),
   categoryId: Joi.number().integer().positive().required(),
@@ -12,7 +12,7 @@ checkProductSchema = Joi.object({
 
 exports.checkProductSchema = checkProductSchema;
 
-checkProductVariantSchema = Joi.array().items(
+const checkProductVariantSchema = Joi.array().items(
   Joi.object({
     colorId: Joi.number().integer().positive().required(),
     shoeSizeId: Joi.number().integer().positive().optional(),
@@ -23,3 +23,9 @@ checkProductVariantSchema = Joi.array().items(
 );
 
 exports.checkProductVariantSchema = checkProductVariantSchema;
+
+const checkProductIdSchema = Joi.object({
+  productId : Joi.number().positive().required()
+  })
+
+exports.checkProductIdSchema = checkProductIdSchema

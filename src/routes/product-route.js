@@ -11,5 +11,5 @@ router.post(
   productController.createProduct
 );
 router.get("/searchedTitle/:searchedTitle",productController.searchProduct)
-
+router.get("/productId/:productId",productController.getProductById)
 module.exports = router;
