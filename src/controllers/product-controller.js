@@ -385,24 +385,46 @@ exports.createReview = async (req, res, next) => {
   const review = await prisma.review.create({
     data: { ...req.body, buyerId },
   });
-  res.json({review});
+  res.json({ review });
 };
 
 exports.getReviewProduct = async (req, res, next) => {
   const { productId } = req.params;
-  let reviews = await prisma.review.findMany({
+
+  const reviews = await prisma.review.findMany({
     where: { productId: +productId },
+    orderBy: {
+      createdAt: "desc",
+    },
     include: {
       user: true,
     },
   });
 
+  const ratings = [
+    { rating: 5, nums: 0 },
+    { rating: 4, nums: 0 },
+    { rating: 3, nums: 0 },
+    { rating: 2, nums: 0 },
+    { rating: 1, nums: 0 },
+  ];
+
+  for (const review of reviews) {
+    ratings.find((rating) => rating.rating === review.rating).nums++;
+  }
+
   const review = reviews.map((review) => {
     return {
       id: review.id,
       content: review.content,
+      rating: review.rating,
+      reviewAt: review.createdAt,
+      reviewer: {
+        name: `${review.user.firstName} ${review.user.lastName}`,
+        imageUrl: review.user.profileImage,
+      },
     };
   });
 
-  res.status(200).json({ reviews });
+  res.status(200).json({ numberOfReview: reviews.length, ratings, review });
 };
