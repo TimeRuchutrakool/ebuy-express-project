@@ -381,11 +381,41 @@ exports.getProductPopular = async (req, res, next) => {
 
 exports.createReview = async (req, res, next) => {
   const buyerId = req.user.id;
-  console.log(req.body);
-  const review = await prisma.review.create({
+  const productId = +req.body.productId;
+
+  const createdReview = await prisma.review.create({
     data: { ...req.body, buyerId },
+    include: { user: true },
   });
-  res.json({ review });
+
+  const review = await prisma.review.findMany({
+    where: { productId: productId },
+  });
+
+  const ratingSum = review.reduce((acc, cur) => acc + cur.rating, 0);
+
+  await prisma.product.update({
+    where: {
+      id: productId,
+    },
+    data: {
+      avgRating: ratingSum / review.length,
+    },
+  });
+  console.log();
+
+  const data = {
+    id: createdReview.id,
+    content: createdReview.content,
+    rating: createdReview.rating,
+    reviewAt: createdReview.createdAt,
+    reviewer: {
+      name: `${createdReview.user.firstName} ${createdReview.user.lastName}`,
+      imageUrl: createdReview.user.profileImage,
+    },
+  };
+
+  res.json({ data });
 };
 
 exports.getReviewProduct = async (req, res, next) => {
