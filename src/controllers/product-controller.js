@@ -361,6 +361,7 @@ exports.getProductPopular = async (req, res, next) => {
       },
       include: {
         users: true,
+        ProductImage: true,
       },
     });
     const productPopular = product.map((data) => {
@@ -371,6 +372,7 @@ exports.getProductPopular = async (req, res, next) => {
         rating: data.avgRating,
         sellerFirstName: data.users.firstName,
         sellerLastName: data.users.lastName,
+        productImage: data.ProductImage[0]?.imageUrl,
       };
     });
     res.status(200).json(productPopular);
