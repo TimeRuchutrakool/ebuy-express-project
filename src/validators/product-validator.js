@@ -8,7 +8,6 @@ const checkProductSchema = Joi.object({
   price: Joi.number().positive().required(),
   description: Joi.string().required(),
   sizeAndStock: Joi.required().allow(""),
- 
 });
 
 exports.checkProductSchema = checkProductSchema;

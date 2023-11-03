@@ -155,27 +155,28 @@ model PantsSize {
 
 ////////////////////// Review //////////////////////
 model Review {
-  id        Int     @id @default(autoincrement())
+  id        Int      @id @default(autoincrement())
   content   String?
   rating    Int
-  productId Int     @map("product_id")
-  product   Product @relation(fields: [productId], references: [id])
-  buyerId   Int     @map("buyer_id")
-  user      User    @relation(fields: [buyerId], references: [id])
+  productId Int      @map("product_id")
+  product   Product  @relation(fields: [productId], references: [id])
+  buyerId   Int      @map("buyer_id")
+  user      User     @relation(fields: [buyerId], references: [id])
+  createdAt DateTime @default(now())
 
   @@map("reviews")
 }
 
 model CartItem {
-  id          Int       @id @default(autoincrement())
+  id          Int        @id @default(autoincrement())
   amount      Int
-  buyerId     Int       @map("buyer_id")
-  user        User      @relation(fields: [buyerId], references: [id])
-  productId   Int       @map("product_id")
-  product     Product   @relation(fields: [productId], references: [id])
-  colorId     Int       @map("color_id") 
-  color       Color     @relation(fields: [colorId], references: [id])
-  shoeId      Int?      @map("shoe_id")
+  buyerId     Int        @map("buyer_id")
+  user        User       @relation(fields: [buyerId], references: [id])
+  productId   Int        @map("product_id")
+  product     Product    @relation(fields: [productId], references: [id])
+  colorId     Int        @map("color_id")
+  color       Color      @relation(fields: [colorId], references: [id])
+  shoeId      Int?       @map("shoe_id")
   shoeSize    ShoeSize?  @relation(fields: [shoeId], references: [id])
   pantSizeId  Int?       @map("pant_size_id")
   pantSize    PantsSize? @relation(fields: [pantSizeId], references: [id])
