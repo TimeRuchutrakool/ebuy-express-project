@@ -10,6 +10,12 @@ const cartRoute = require("./routes/cart-route");
 const productRoute = require("./routes/product-route");
 const wishRoute = require("./routes/wish-route");
 const userRoute = require("./routes/user-route");
+const {
+  getChatList,
+  joinRoom,
+  sendMessage,
+  findRoom,
+} = require("./socket/chatSocket");
 
 const app = express();
 const httpServer = http.createServer(app);
@@ -24,21 +30,23 @@ app.use("/product", productRoute);
 app.use("/user", userRoute);
 app.use("/wish", wishRoute);
 
-const PORT = process.env.PORT || "2000";
-
-httpServer.listen(PORT, () => {
-  console.log(`Server is running on ${PORT}`);
-});
-
 const io = new Server(httpServer, {
   cors: { origin: "*" },
 });
 
-io.on("connection", (socket) => {
-  console.log("Client connect to server");
-  socket.on("message", (data, cb) => {
-    console.log(data);
-    cb(data)
-  });
+io.of("/chat").on("connection", (socket) => {
+  console.log(socket.id);
 
+  getChatList(socket);
+  joinRoom(io, socket);
+  sendMessage(io, socket);
+  findRoom(socket);
+
+  socket.on("disconnect", () => console.log("Someone left."));
+});
+
+const PORT = process.env.PORT || "2000";
+
+httpServer.listen(PORT, () => {
+  console.log(`Server is running on ${PORT}`);
 });
