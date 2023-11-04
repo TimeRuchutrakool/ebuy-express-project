@@ -28,8 +28,8 @@ model User {
   orderBuyer   Order[]      @relation("buyer")
   bidSeller    BidProduct[] @relation("seller")
   bidBuyer     BidProduct[] @relation("buyer")
-  chatBuyer    Chatroom[]   @relation("buyer")
-  chatSeller   Chatroom[]   @relation("seller")
+  chatUser1    Chatroom[]   @relation("user1")
+  chatUser2    Chatroom[]   @relation("user2")
   Message      Message[]
 
   @@map("users")
@@ -249,18 +249,19 @@ model BidProduct {
 
 ////////////////////// Chat Message //////////////////////
 model Chatroom {
-  id       Int       @id @default(autoincrement())
-  buyerId  Int       @map("buyer_id")
-  buyer    User      @relation("buyer", fields: [buyerId], references: [id])
-  sellerId Int       @map("seller_id")
-  seller   User      @relation("seller", fields: [sellerId], references: [id])
-  Message  Message[]
+  id            Int       @id @default(autoincrement())
+  user1Id       Int       @map("user_1_id")
+  user1         User      @relation("user1", fields: [user1Id], references: [id])
+  user2Id       Int       @map("user_2_id")
+  user2         User      @relation("user2", fields: [user2Id], references: [id])
+  Message       Message[]
+  latestMessageTime DateTime  @default(now()) @map("latest_message_time")
 
   @@map("chatrooms")
 }
 
 model Message {
-  id         Int      @id @default(autoincrement())
+  id         String   @id
   content    String
   sendAt     DateTime @default(now()) @map("send_at")
   chatroom   Chatroom @relation(fields: [chatroomId], references: [id])
