@@ -71,7 +71,7 @@ module.exports.sendMessage = (io, socket) => {
 
 module.exports.findRoom = (socket) => {
   socket.on("findRoom", async (data, cb) => {
-    const chatRoom = await prisma.chatroom.findFirst({
+    let chatRoom = await prisma.chatroom.findFirst({
       where: {
         OR: [
           { user1Id: data.userId, user2Id: data.storeId },
@@ -80,7 +80,7 @@ module.exports.findRoom = (socket) => {
       },
     });
     if (!chatRoom) {
-      await prisma.chatroom.create({
+      chatRoom = await prisma.chatroom.create({
         data: {
           user1Id: data.userId,
           user2Id: data.storeId,
@@ -88,8 +88,6 @@ module.exports.findRoom = (socket) => {
       });
     }
     const talkTo = await prisma.user.findFirst({ where: { id: data.storeId } });
-    cb(talkTo);
+    cb({ id: chatRoom.id, talkTo });
   });
 };
-
-
