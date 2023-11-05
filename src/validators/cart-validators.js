@@ -1,14 +1,13 @@
 const Joi = require('joi')
 
 const removeItemInCartSchema = Joi.object({
-    removeItem : Joi.number().integer().positive().required()
+    cartItemId : Joi.number().integer().positive().required()
 })
 
 exports.removeItemInCartSchema = removeItemInCartSchema;
 
 
-const addIteminCartSchema = Joi.object({
-    amount : Joi.number().integer().positive().required(),
+const cartItemValidator = Joi.object({
     productId : Joi.number().integer().positive().required(),
     colorId : Joi.number().integer().positive().required(),
     shirtSizeId : Joi.number().integer().positive().allow(null,''),
@@ -16,4 +15,4 @@ const addIteminCartSchema = Joi.object({
     pantSizeId : Joi.number().integer().positive().allow(null,'')
 })
 
-exports.addIteminCartSchema = addIteminCartSchema;
+exports.cartItemValidator = cartItemValidator;
