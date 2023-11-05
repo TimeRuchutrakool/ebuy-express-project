@@ -29,10 +29,10 @@ exports.getWish = async (req, res, next) => {
     });
     const products = getWish.map((product) => {
       return {
-        id:product.product.productId,
-        name : product.product.name,
-        price : product.product.price,
-        imageUrl : product.product.ProductImage[0].imageUrl
+        id: product.product.productId,
+        name: product.product.name,
+        price: product.product.price,
+        imageUrl: product.product.ProductImage[0].imageUrl,
       };
     });
 
@@ -43,7 +43,7 @@ exports.getWish = async (req, res, next) => {
 };
 
 // เพิ่มรายการโปรด
-exports.addWish = async (req, res, next) => {
+exports.toggleWish = async (req, res, next) => {
   try {
     const { id: userId } = req.user;
     const { value, error } = addWishSchema.validate(req.params);
@@ -68,7 +68,7 @@ exports.addWish = async (req, res, next) => {
           productId: +value.productId,
         },
       });
-      res.status(200).json({ wishItem });
+      res.status(200).json({ isWish: true });
     } else {
       await prisma.wishItem.deleteMany({
         where: {
@@ -76,8 +76,25 @@ exports.addWish = async (req, res, next) => {
           productId: +value.productId,
         },
       });
-      res.status(200).json({ message: "remove wish success" });
+      res.status(200).json({ isWish: false });
     }
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports.isWish = async (req, res, next) => {
+  try {
+    const { id: userId } = req.user;
+    const productId = +req.query.productId;
+
+    const isWish = await prisma.wishItem.findFirst({
+      where: {
+        buyerId: userId,
+        productId: productId,
+      },
+    });
+    res.json({ isWish: isWish ? true : false });
   } catch (error) {
     next(error);
   }
