@@ -31,7 +31,7 @@ model User {
   chatUser1    Chatroom[]   @relation("user1")
   chatUser2    Chatroom[]   @relation("user2")
   Message      Message[]
-  Address      Address[]
+  Address      Address?
 
   @@map("users")
 }
@@ -283,7 +283,7 @@ model Address {
   city        String
   zipcode     String
 
-  userId Int
+  userId Int  @unique
   user   User @relation(fields: [userId], references: [id])
 
   @@map("address")
