@@ -549,3 +549,31 @@ exports.getReviewProduct = async (req, res, next) => {
 
   res.status(200).json({ numberOfReview: reviews.length, ratings, review });
 };
+
+
+exports.getVariant = async (req,res,next)=>{
+  try {
+   
+    let productVariant = [];
+    const variantColor = await prisma.color.findMany()
+    
+    const variantCategory = await prisma.category.findMany()
+
+    const variantShoeSize = await prisma.shoeSize.findMany()
+
+    const variantShirtSize = await prisma.shirtSize.findMany()
+
+    const variantPantsSize =  await prisma.pantsSize.findMany()
+
+    productVariant = [
+      {variantColor},{variantCategory},{variantShoeSize},{variantShirtSize},
+      {variantPantsSize}
+    ]
+    
+
+
+    res.status(200).json({productVariant})
+  } catch (error) {
+    next(error)
+  }
+}
