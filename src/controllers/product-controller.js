@@ -69,27 +69,52 @@ exports.createProduct = async (req, res, next) => {
     // createProductVariant
 
     const productVariantArray = JSON.parse(sizeAndStock);
-    console.log(productVariantArray);
 
-    if (productVariantArray.length) {
-      const { value, error } =
-        checkUpdateProductVariantSchema.validate(productVariantArray);
+    productVariantArray.map((item) => delete item.id);
+    const result = productVariantArray.map((item) => {
+      const newItem = {
+        colorId: Number(item.colorId),
+        stock: Number(item.stock),
+      };
+
+      if (item.shirtSizeId) {
+        newItem.shirtSizeId = Number(item.shirtSizeId);
+      } else if (item.shoeSizeId) {
+        newItem.shoeSizeId = Number(item.shoeSizeId);
+      } else if (item.pantsSizeId) {
+        newItem.pantsSizeId = Number(item.pantsSizeId);
+      }
+
+      return newItem;
+    });
+
+    console.log(
+      "🚀 ~ file: product-controller.js:81 ~ result ~ result:",
+      result
+    );
+
+    if (result.length) {
+      const { value, error } = checkUpdateProductVariantSchema.validate(result);
 
       if (error) {
         return next(createError("Incorrect information", 400));
       }
 
-      for (const optional of productVariantArray) {
+      for (const optional of result) {
         optional.productId = product.id;
       }
 
       await prisma.productVariant.createMany({
-        data: productVariantArray,
+        data: result,
       });
     }
 
     res.status(201).json({ message: "Success" });
   } catch (err) {
+    console.log(
+      "🚀 ~ file: product-controller.js:93 ~ exports.createProduct= ~ err:",
+      err
+    );
     next(err);
   }
 };
