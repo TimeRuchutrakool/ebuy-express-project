@@ -201,67 +201,6 @@ exports.updateProduct = async (req, res, next) => {
   }
 };
 
-exports.searchProduct = async (req, res, next) => {
-  try {
-    const { searchedTitle } = req.params;
-
-    const searchCategory = await prisma.category.findFirst({
-      where: {
-        name: { contains: searchedTitle },
-      },
-    });
-
-    const searchBrand = await prisma.brand.findFirst({
-      where: {
-        name: { contains: searchedTitle },
-      },
-    });
-
-    const product = await prisma.product.findMany({
-      where: {
-        OR: [
-          {
-            name: {
-              contains: searchedTitle,
-            },
-          },
-          {
-            description: {
-              contains: searchedTitle,
-            },
-          },
-          { categoryId: searchCategory?.id },
-          {
-            brandId: searchBrand?.id,
-          },
-        ],
-      },
-      include: {
-        ProductVariant: {
-          include: {
-            color: true,
-            pantsSize: true,
-            shirtSize: true,
-            shoeSize: true,
-          },
-        },
-        ProductImage: true,
-        users: true,
-      },
-    });
-
-    const searchData = product.map((el) => {
-      el.ProductImage = el.ProductImage[0];
-      return el;
-    });
-
-    res.status(200).json({ searchData });
-  } catch (err) {
-    console.log("error  =", err);
-    next(err);
-  }
-};
-
 exports.search = async (req, res, next) => {
   const { searchedTitle } = req.params;
   const { page, type = "", price = "" } = req.query;
