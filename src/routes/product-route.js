@@ -11,6 +11,7 @@ router.post(
   uploadMiddleware.array("image"),
   productController.createProduct
 );
+
 router.patch(
   "/editProduct",
   authenticatedMiddleware,
@@ -18,6 +19,7 @@ router.patch(
   productController.updateProduct
 );
 
+router.get("/variant",authenticates,productController.getVariant)
 router.get("/search/:searchedTitle", productController.search);
 router.get("/productId/:productId", productController.getProductById);
 router.get("/productPopular", productController.getProductPopular);
