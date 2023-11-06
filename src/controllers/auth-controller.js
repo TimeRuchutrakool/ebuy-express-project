@@ -59,6 +59,7 @@ exports.login = async (req, res, next) => {
       }
     );
     delete user.password;
+
     res.status(201).json({ accessToken, user });
   } catch (error) {
     console.log(
