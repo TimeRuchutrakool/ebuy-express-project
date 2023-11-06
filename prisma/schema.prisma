@@ -31,6 +31,7 @@ model User {
   chatUser1    Chatroom[]   @relation("user1")
   chatUser2    Chatroom[]   @relation("user2")
   Message      Message[]
+  Address      Address[]
 
   @@map("users")
 }
@@ -249,12 +250,12 @@ model BidProduct {
 
 ////////////////////// Chat Message //////////////////////
 model Chatroom {
-  id            Int       @id @default(autoincrement())
-  user1Id       Int       @map("user_1_id")
-  user1         User      @relation("user1", fields: [user1Id], references: [id])
-  user2Id       Int       @map("user_2_id")
-  user2         User      @relation("user2", fields: [user2Id], references: [id])
-  Message       Message[]
+  id                Int       @id @default(autoincrement())
+  user1Id           Int       @map("user_1_id")
+  user1             User      @relation("user1", fields: [user1Id], references: [id])
+  user2Id           Int       @map("user_2_id")
+  user2             User      @relation("user2", fields: [user2Id], references: [id])
+  Message           Message[]
   latestMessageTime DateTime  @default(now()) @map("latest_message_time")
 
   @@map("chatrooms")
@@ -270,4 +271,20 @@ model Message {
   user       User     @relation(fields: [senderId], references: [id])
 
   @@map("messages")
+}
+
+model Address {
+  id          Int    @id @default(autoincrement())
+  houseNum    String @map("house_number")
+  subDistrict String @map("sub_district")
+  district    String
+  zone        String
+  province    String
+  city        String
+  zipcode     String
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+
+  @@map("address")
 }
