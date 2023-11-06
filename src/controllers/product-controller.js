@@ -200,26 +200,26 @@ exports.updateProduct = async (req, res, next) => {
     next(error);
   }
 };
+
 exports.searchProduct = async (req, res, next) => {
   try {
     const { searchedTitle } = req.params;
 
     const searchCategory = await prisma.category.findFirst({
       where: {
-        name: searchedTitle,
+        name: { contains: searchedTitle },
       },
     });
 
     const searchBrand = await prisma.brand.findFirst({
       where: {
-        name: searchedTitle,
+        name: { contains: searchedTitle },
       },
     });
 
     const product = await prisma.product.findMany({
       where: {
         OR: [
-          { categoryId: searchCategory?.id },
           {
             name: {
               contains: searchedTitle,
@@ -230,23 +230,23 @@ exports.searchProduct = async (req, res, next) => {
               contains: searchedTitle,
             },
           },
+          { categoryId: searchCategory?.id },
           {
             brandId: searchBrand?.id,
           },
         ],
       },
       include: {
-        ProductImage: {
-          select: {
-            imageUrl: true,
+        ProductVariant: {
+          include: {
+            color: true,
+            pantsSize: true,
+            shirtSize: true,
+            shoeSize: true,
           },
         },
-        users: {
-          select: {
-            firstName: true,
-            lastName: true,
-          },
-        },
+        ProductImage: true,
+        users: true,
       },
     });
 
@@ -259,6 +259,130 @@ exports.searchProduct = async (req, res, next) => {
   } catch (err) {
     console.log("error  =", err);
     next(err);
+  }
+};
+
+exports.search = async (req, res, next) => {
+  const { searchedTitle } = req.params;
+  const { page, type = "", price = "" } = req.query;
+  const [minPrice, maxPrice] = price && price.split("-");
+  console.log(page);
+  console.log(type);
+  console.log(price);
+
+  try {
+    const searchCategory = await prisma.category.findFirst({
+      where: {
+        name: { contains: searchedTitle },
+      },
+    });
+    const searchBrand = await prisma.brand.findFirst({
+      where: {
+        name: { contains: searchedTitle },
+      },
+    });
+    const count = await prisma.product.findMany({
+      where: {
+        OR: [
+          {
+            name: {
+              contains: searchedTitle,
+            },
+          },
+          {
+            description: {
+              contains: searchedTitle,
+            },
+          },
+          { categoryId: searchCategory?.id },
+          {
+            brandId: searchBrand?.id,
+          },
+        ],
+        AND: [
+          type
+            ? {
+                typeId: +type,
+              }
+            : {
+                price: { gte: 0 },
+              },
+          price
+            ? {
+                price: {
+                  gte: +minPrice,
+                  lte: +maxPrice,
+                },
+              }
+            : {
+                price: { gte: 0 },
+              },
+        ],
+      },
+    });
+    let product = await prisma.product.findMany({
+      orderBy: { createdAt: "desc" },
+      where: {
+        OR: [
+          {
+            name: {
+              contains: searchedTitle,
+            },
+          },
+          {
+            description: {
+              contains: searchedTitle,
+            },
+          },
+          { categoryId: searchCategory?.id },
+          {
+            brandId: searchBrand?.id,
+          },
+        ],
+        AND: [
+          type
+            ? {
+                typeId: +type,
+              }
+            : {
+                price: { gte: 0 },
+              },
+          price
+            ? {
+                price: {
+                  gte: +minPrice,
+                  lte: +maxPrice,
+                },
+              }
+            : {
+                price: { gte: 0 },
+              },
+        ],
+      },
+      take: 12,
+      skip: (Number(page || 1) - 1) * 12,
+      include: {
+        users: true,
+        ProductImage: true,
+      },
+    });
+
+    product = product.map((p) => {
+      return {
+        id: p.id,
+        name: p.name,
+        price: p.price,
+        description: p.description,
+        avgRating: p.avgRating,
+        sellerFirstName: p.users.firstName,
+        sellerLastName: p.users.lastName,
+        imageUrl: p.ProductImage[0].imageUrl,
+      };
+    });
+
+    res.json({ count: count.length, product });
+  } catch (error) {
+    next(error);
   }
 };
 

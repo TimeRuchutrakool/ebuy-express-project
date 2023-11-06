@@ -19,6 +19,7 @@ router.patch(
 );
 
 router.get("/searchedTitle/:searchedTitle", productController.searchProduct);
+router.get("/search/:searchedTitle", productController.search);
 router.get("/productId/:productId", productController.getProductById);
 router.get("/productPopular", productController.getProductPopular);
 router.get("/review/:productId", productController.getReviewProduct);
