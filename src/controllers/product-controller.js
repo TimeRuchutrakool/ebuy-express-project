@@ -266,6 +266,9 @@ exports.search = async (req, res, next) => {
   const { searchedTitle } = req.params;
   const { page, type = "", price = "" } = req.query;
   const [minPrice, maxPrice] = price && price.split("-");
+  console.log(page)
+  console.log(type)
+  console.log(price)
 
   try {
     const searchCategory = await prisma.category.findFirst({
