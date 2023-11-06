@@ -65,6 +65,7 @@ exports.getMystore = async (req, res, next) => {
       },
       include: {
         ProductImage: true,
+        ProductVariant: true,
       },
     });
 
@@ -75,6 +76,10 @@ exports.getMystore = async (req, res, next) => {
         description: el.description,
         price: el.price,
         imageUrl: el.ProductImage[0].imageUrl,
+        typeId: el.typeId,
+        brandId: el.brandId,
+        categoryId: el.categoryId,
+        ProductVariant: el.ProductVariant,
       };
     });
     res.status(200).json({ myStore: store });
