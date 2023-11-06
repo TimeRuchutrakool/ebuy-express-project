@@ -266,9 +266,9 @@ exports.search = async (req, res, next) => {
   const { searchedTitle } = req.params;
   const { page, type = "", price = "" } = req.query;
   const [minPrice, maxPrice] = price && price.split("-");
-  console.log(page)
-  console.log(type)
-  console.log(price)
+  console.log(page);
+  console.log(type);
+  console.log(price);
 
   try {
     const searchCategory = await prisma.category.findFirst({
@@ -279,6 +279,45 @@ exports.search = async (req, res, next) => {
     const searchBrand = await prisma.brand.findFirst({
       where: {
         name: { contains: searchedTitle },
+      },
+    });
+    const count = await prisma.product.findMany({
+      where: {
+        OR: [
+          {
+            name: {
+              contains: searchedTitle,
+            },
+          },
+          {
+            description: {
+              contains: searchedTitle,
+            },
+          },
+          { categoryId: searchCategory?.id },
+          {
+            brandId: searchBrand?.id,
+          },
+        ],
+        AND: [
+          type
+            ? {
+                typeId: +type,
+              }
+            : {
+                price: { gte: 0 },
+              },
+          price
+            ? {
+                price: {
+                  gte: +minPrice,
+                  lte: +maxPrice,
+                },
+              }
+            : {
+                price: { gte: 0 },
+              },
+        ],
       },
     });
     let product = await prisma.product.findMany({
@@ -341,7 +380,7 @@ exports.search = async (req, res, next) => {
       };
     });
 
-    res.json({ product });
+    res.json({ count: count.length, product });
   } catch (error) {
     next(error);
   }
