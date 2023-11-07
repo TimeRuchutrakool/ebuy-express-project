@@ -550,30 +550,32 @@ exports.getReviewProduct = async (req, res, next) => {
   res.status(200).json({ numberOfReview: reviews.length, ratings, review });
 };
 
-
-exports.getVariant = async (req,res,next)=>{
+exports.getVariant = async (req, res, next) => {
   try {
-   
     let productVariant = [];
-    const variantColor = await prisma.color.findMany()
-    
-    const variantCategory = await prisma.category.findMany()
+    const variantColor = await prisma.color.findMany();
 
-    const variantShoeSize = await prisma.shoeSize.findMany()
+    const variantCategory = await prisma.category.findMany();
 
-    const variantShirtSize = await prisma.shirtSize.findMany()
+    const variantShoeSize = await prisma.shoeSize.findMany();
 
-    const variantPantsSize =  await prisma.pantsSize.findMany()
+    const variantShirtSize = await prisma.shirtSize.findMany();
 
-    productVariant = [
-      {variantColor},{variantCategory},{variantShoeSize},{variantShirtSize},
-      {variantPantsSize}
-    ]
-    
+    const variantPantsSize = await prisma.pantsSize.findMany();
 
+    const variantBrand = await prisma.brand.findMany();
 
-    res.status(200).json({productVariant})
+    productVariant = {
+      color: variantColor,
+      category: variantCategory,
+      shoeSize: variantShoeSize,
+      shirtSize: variantShirtSize,
+      pantsSize: variantPantsSize,
+      brand: variantBrand,
+    };
+
+    res.status(200).json({ productVariant });
   } catch (error) {
-    next(error)
+    next(error);
   }
-}
+};
