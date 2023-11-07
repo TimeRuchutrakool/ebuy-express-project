@@ -7,7 +7,7 @@ exports.updateProfileImage = async (req, res, next) => {
   try {
     const user = req.user;
     if (!req.file) {
-      return next(createError("profile image or cover image is required"));
+      return next(createError("profile image is required"));
     }
     console.log(req.file);
     const updateImage = {};
