@@ -12,25 +12,28 @@ datasource db {
 
 ////////////////////// User //////////////////////
 model User {
-  id           Int          @id @default(autoincrement())
-  firstName    String       @map("first_name")
-  lastName     String       @map("last_name")
-  email        String       @unique
+  id           Int               @id @default(autoincrement())
+  firstName    String            @map("first_name")
+  lastName     String            @map("last_name")
+  email        String            @unique
   password     String
-  point        Int          @default(0)
+  point        Int               @default(0)
   address      String?
-  profileImage String?      @map("profile_image")
+  profileImage String?           @map("profile_image")
   products     Product[]
   review       Review[]
   cartItem     CartItem[]
   wishItem     WishItem[]
-  orderSeller  Order[]      @relation("seller")
-  orderBuyer   Order[]      @relation("buyer")
-  bidSeller    BidProduct[] @relation("seller")
-  bidBuyer     BidProduct[] @relation("buyer")
-  chatUser1    Chatroom[]   @relation("user1")
-  chatUser2    Chatroom[]   @relation("user2")
+  orderSeller  Order[]           @relation("seller")
+  orderBuyer   Order[]           @relation("buyer")
+  bidSeller    BidProduct[]      @relation("seller")
+  bidBuyer     BidProduct[]      @relation("buyer")
+  chatUser1    Chatroom[]        @relation("user1")
+  chatUser2    Chatroom[]        @relation("user2")
   Message      Message[]
+  Address      Address?
+  buyer        TransactionItem[] @relation("buyer")
+  seller       TransactionItem[] @relation("seller")
 
   @@map("users")
 }
@@ -43,6 +46,7 @@ model Product {
   description    String           @db.LongText
   createdAt      DateTime         @default(now()) @map("create_at")
   avgRating      Decimal          @default(0) @db.Decimal(2, 1)
+  stripeApiId    String           @map("stripe_api_id")
   sellerId       Int              @map("seller_id")
   users          User             @relation(fields: [sellerId], references: [id])
   typeId         Int              @map("type_id")
@@ -89,12 +93,9 @@ model Brand {
 }
 
 model Category {
-  id      Int       @id @default(autoincrement())
-  name    String
-  color   Boolean
-  shoes   Boolean
-  shirt   Boolean
-  pants   Boolean
+  id   Int    @id @default(autoincrement())
+  name String
+
   Product Product[]
 
   @@map("categories")
@@ -222,6 +223,8 @@ model OrderItem {
   bidId          BidProduct? @relation(fields: [bidProductId], references: [id])
   productId      Int?        @map("product_id")
   product        Product?    @relation(fields: [productId], references: [id])
+  transactionId  String
+  transaction    Transaction @relation(fields: [transactionId], references: [id])
 
   @@map("order_items")
 }
@@ -249,12 +252,12 @@ model BidProduct {
 
 ////////////////////// Chat Message //////////////////////
 model Chatroom {
-  id            Int       @id @default(autoincrement())
-  user1Id       Int       @map("user_1_id")
-  user1         User      @relation("user1", fields: [user1Id], references: [id])
-  user2Id       Int       @map("user_2_id")
-  user2         User      @relation("user2", fields: [user2Id], references: [id])
-  Message       Message[]
+  id                Int       @id @default(autoincrement())
+  user1Id           Int       @map("user_1_id")
+  user1             User      @relation("user1", fields: [user1Id], references: [id])
+  user2Id           Int       @map("user_2_id")
+  user2             User      @relation("user2", fields: [user2Id], references: [id])
+  Message           Message[]
   latestMessageTime DateTime  @default(now()) @map("latest_message_time")
 
   @@map("chatrooms")
@@ -270,4 +273,42 @@ model Message {
   user       User     @relation(fields: [senderId], references: [id])
 
   @@map("messages")
+}
+
+model Address {
+  id          Int    @id @default(autoincrement())
+  houseNum    String @map("house_number")
+  subDistrict String @map("sub_district")
+  district    String
+  zone        String
+  province    String
+  city        String
+  zipcode     String
+
+  userId Int  @unique @map("user_id")
+  user   User @relation(fields: [userId], references: [id])
+
+  @@map("address")
+}
+
+model TransactionItem {
+  id                 Int         @id @default(autoincrement())
+  sellerId           Int         @map("seller_id")
+  seller             User        @relation("buyer", fields: [sellerId], references: [id])
+  buyerId            Int         @map("buyer_id")
+  buyer              User        @relation("seller", fields: [buyerId], references: [id])
+  transactionId      String      @map("transaction_id")
+  transaction        Transaction @relation(fields: [transactionId], references: [id])
+  billPerTransaction Decimal     @db.Decimal(10, 2)
+
+  @@map("transaction_items")
+}
+
+model Transaction {
+  id              String            @id
+  totalBill       Decimal           @map("total_bill") @db.Decimal(10, 2)
+  OrderItem       OrderItem[]
+  TransactionItem TransactionItem[]
+
+  @@map("transactions")
 }

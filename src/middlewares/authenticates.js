@@ -17,6 +17,9 @@ module.exports = async (req, res, next) => {
       where: {
         id: payload.userId,
       },
+      include: {
+        Address: true,
+      },
     });
 
     if (!user) {
@@ -24,7 +27,10 @@ module.exports = async (req, res, next) => {
     }
 
     delete user.password;
+    user.address = user.Address
+    delete user.Address
     req.user = user;
+    
     next();
   } catch (error) {
     if (

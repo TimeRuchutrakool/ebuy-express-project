@@ -1,14 +1,17 @@
 const prisma = require("../models/prisma");
 const { upload } = require("../utils/cloudinaryServices");
 const fs = require("fs/promises");
+const fs = require("fs/promises");
 const createError = require("../utils/create-error");
 
 exports.updateProfileImage = async (req, res, next) => {
   try {
     const user = req.user;
+    const user = req.user;
     if (!req.file) {
       return next(createError("profile image is required"));
     }
+    console.log(req.file);
     console.log(req.file);
     const updateImage = {};
     if (req.file) {
@@ -22,14 +25,29 @@ exports.updateProfileImage = async (req, res, next) => {
           id: user.id,
         },
       });
+    if (req.file) {
+      const url = await upload(req.file.path);
+      updateImage.profileImage = url;
+      await prisma.user.update({
+        data: {
+          profileImage: url,
+        },
+        where: {
+          id: user.id,
+        },
+      });
     }
+    res.status(200).json(updateImage);
     res.status(200).json(updateImage);
   } catch (error) {
     next(error);
   } finally {
     if (req.file) {
       fs.unlink(req.file.path);
+    if (req.file) {
+      fs.unlink(req.file.path);
     }
+  }
   }
 };
 
@@ -83,6 +101,23 @@ exports.getMystore = async (req, res, next) => {
       };
     });
     res.status(200).json({ myStore: store });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.editAddress = async (req, res, next) => {
+  try {
+    const { id } = req.user;
+    const obj = req.body;
+    const updatedAddress = await prisma.address.update({
+      where: {
+        userId: id,
+      },
+      data: { ...obj },
+    });
+    console.log(updatedAddress);
+    res.json({ updatedAddress });
   } catch (error) {
     next(error);
   }
