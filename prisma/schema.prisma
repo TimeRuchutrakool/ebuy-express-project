@@ -46,6 +46,7 @@ model Product {
   description    String           @db.LongText
   createdAt      DateTime         @default(now()) @map("create_at")
   avgRating      Decimal          @default(0) @db.Decimal(2, 1)
+  stripeApiId    String
   sellerId       Int              @map("seller_id")
   users          User             @relation(fields: [sellerId], references: [id])
   typeId         Int              @map("type_id")
