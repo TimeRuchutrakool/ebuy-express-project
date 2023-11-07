@@ -23,6 +23,11 @@ exports.register = async (req, res, next) => {
         expiresIn: process.env.JWT_EXPIRE,
       }
     );
+    await prisma.address.create({
+      data: {
+        userId: user.id,
+      },
+    });
     delete user.password;
     res.status(201).json({ accessToken, user });
   } catch (error) {
