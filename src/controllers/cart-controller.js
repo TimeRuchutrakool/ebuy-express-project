@@ -188,3 +188,14 @@ exports.removeItem = async (req, res, next) => {
     next(error);
   }
 };
+
+
+//////////// Payout /////////////
+exports.checkoutPayment = async (req,res,next) =>{
+  try {
+    // Stripe process
+    
+  } catch (error) {
+    next(error)
+  }
+}
