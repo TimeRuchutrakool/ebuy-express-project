@@ -2,6 +2,7 @@ const prisma = require("../models/prisma");
 const createError = require("../utils/create-error");
 const fs = require("fs/promises");
 const { upload } = require("../utils/cloudinaryServices");
+const { v4 } = require("uuid");
 const {
   checkProductSchema,
   checkProductVariantSchema,
@@ -41,6 +42,7 @@ exports.createProduct = async (req, res, next) => {
         typeId,
         brandId,
         categoryId,
+        stripeApiId: v4(),
       },
     });
 
