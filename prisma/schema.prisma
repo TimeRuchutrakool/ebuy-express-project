@@ -18,7 +18,7 @@ model User {
   email        String            @unique
   password     String
   point        Int               @default(0)
-  profileImage String?           @map("profile_image")
+  profileImage String?           @map("profile_image") @default("https://res.cloudinary.com/db3ltztig/image/upload/v1699439097/w5rtm4xqqbt584nooq7g.jpg")
   products     Product[]
   review       Review[]
   cartItem     CartItem[]
