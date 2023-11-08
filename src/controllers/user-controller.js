@@ -7,7 +7,7 @@ exports.updateProfileImage = async (req, res, next) => {
   try {
     const user = req.user;
     if (!req.file) {
-      return next(createError("profile image or cover image is required"));
+      return next(createError("profile image image is required"));
     }
     console.log(req.file);
     const updateImage = {};
@@ -60,7 +60,7 @@ exports.editAddress = async (req, res, next) => {
   try {
     const { id } = req.user;
     const obj = req.body;
-    const updatedAddress = await prisma.address.update({
+    const updatedAddress = await prisma.address.updateMany({
       where: {
         userId: id,
       },

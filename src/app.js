@@ -10,6 +10,9 @@ const cartRoute = require("./routes/cart-route");
 const productRoute = require("./routes/product-route");
 const wishRoute = require("./routes/wish-route");
 const userRoute = require("./routes/user-route");
+const bidRoute =require("./routes/bid-route")
+const notFoundMiddleware = require("./middlewares/not-found")
+const errorMiddleware =require("./middlewares/error")
 const {
   getChatList,
   joinRoom,
@@ -29,6 +32,7 @@ app.use("/cart", cartRoute);
 app.use("/product", productRoute);
 app.use("/user", userRoute);
 app.use("/wish", wishRoute);
+app.use("/bid",bidRoute)
 
 const io = new Server(httpServer, {
   cors: { origin: "*" },
@@ -45,6 +49,8 @@ io.of("/chat").on("connection", (socket) => {
   socket.on("disconnect", () => console.log("Someone left."));
 });
 
+app.use(notFoundMiddleware)
+app.use(errorMiddleware)
 const PORT = process.env.PORT || "2000";
 
 httpServer.listen(PORT, () => {
