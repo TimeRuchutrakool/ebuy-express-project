@@ -1,5 +1,6 @@
 const prisma = require("../models/prisma");
 const createError = require("../utils/create-error");
+const stripe = require("stripe")(process.env.STRIPE_API_SK);
 const {
   removeItemInCartSchema,
   cartItemValidator,
@@ -189,13 +190,31 @@ exports.removeItem = async (req, res, next) => {
   }
 };
 
-
 //////////// Payout /////////////
-exports.checkoutPayment = async (req,res,next) =>{
+exports.checkoutPayment = async (req, res, next) => {
   try {
-    // Stripe process
-    
+    const cart = await prisma.cartItem.findMany({
+      where: {
+        buyerId: req.user.id,
+      },
+      include: {
+        product: true,
+      },
+    });
+    const productToCheckout = cart.map((product) => {
+      return { price: product.product.stripeApiId, quantity: product.amount };
+    });
+
+    // checkout session
+    const session = await stripe.checkout.sessions.create({
+      success_url: "http://localhost:3000",
+      line_items: productToCheckout,
+      mode: "payment",
+      metadata: { hello: "Hi" },
+    });
+
+    res.json({ paymentUrl: session });
   } catch (error) {
-    next(error)
+    next(error);
   }
-}
+};

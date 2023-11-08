@@ -45,7 +45,7 @@ model Product {
   description    String           @db.LongText
   createdAt      DateTime         @default(now()) @map("create_at")
   avgRating      Decimal          @default(0) @db.Decimal(2, 1)
-  stripeApiId    String?           @map("stripe_api_id")
+  stripeApiId    String?          @map("stripe_api_id")
   sellerId       Int              @map("seller_id")
   users          User             @relation(fields: [sellerId], references: [id])
   typeId         Int              @map("type_id")
@@ -296,6 +296,7 @@ model TransactionItem {
   transactionId      String      @map("transaction_id")
   transaction        Transaction @relation(fields: [transactionId], references: [id])
   billPerTransaction Decimal     @db.Decimal(10, 2)
+  transactionStatus  String      @map("transaction_status")
 
   @@map("transaction_items")
 }
