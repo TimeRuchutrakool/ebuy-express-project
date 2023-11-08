@@ -205,12 +205,20 @@ exports.checkoutPayment = async (req, res, next) => {
       return { price: product.product.stripeApiId, quantity: product.amount };
     });
 
+    const transactionItems = cart.map((product) => {
+      return {
+        sellerId: `${product.product.sellerId}`,
+        buyerId: `${req.user.id}`,
+        billPerTransaction: `${product.amount * product.product.price}`,
+      };
+    });
+
     // checkout session
     const session = await stripe.checkout.sessions.create({
       success_url: "http://localhost:3000",
       line_items: productToCheckout,
       mode: "payment",
-      metadata: { hello: "Hi" },
+      metadata: { transactionItems: JSON.stringify(transactionItems) },
     });
 
     res.json({ paymentUrl: session });
