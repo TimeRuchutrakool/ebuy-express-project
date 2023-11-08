@@ -1,7 +1,6 @@
 const prisma = require("../models/prisma");
 const { upload } = require("../utils/cloudinaryServices");
 const fs = require("fs/promises");
-const fs = require("fs/promises");
 const createError = require("../utils/create-error");
 
 exports.updateProfileImage = async (req, res, next) => {
