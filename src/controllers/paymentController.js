@@ -11,10 +11,10 @@ module.exports.catchCheckoutResult = (request, response) => {
       sig,
       process.env.ENDPOINT_SECRET
     );
-    console.log(event);
+    // console.log(event);
   } catch (err) {
     response.status(400).send(`Webhook Error: ${err.message}`);
-    console.log(err);
+    // console.log(err);
     return;
   }
 
@@ -30,10 +30,8 @@ module.exports.catchCheckoutResult = (request, response) => {
       break;
     case "checkout.session.completed":
       const checkoutSessionCompleted = event.data.object;
-      const { transactionItems } = JSON.parse(
-        checkoutSessionCompleted.metadata
-      );
-      console.log(transactionItems);
+
+      console.log(checkoutSessionCompleted);
       // Then define and call a function to handle the event checkout.session.completed
       break;
     case "checkout.session.expired":
