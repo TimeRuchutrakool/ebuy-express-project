@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon src/app.js"
+    "dev": "nodemon src/app.js",
+    "build": "npm install prisma@4.16.2 && npx prisma generate && npm install"
   },
   "keywords": [],
   "author": "",

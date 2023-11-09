@@ -26,11 +26,11 @@ app.use(morgan("dev"));
 
 app.post(
   "/webhook",
-  express.raw({ type: "*/*" }),
+  express.raw({ type: "application/json" }),
   paymentController.catchCheckoutResult
 );
 
-app.use(express.json())
+app.use(express.json());
 
 app.use("/auth", authRoute);
 app.use("/cart", cartRoute);
