@@ -1,7 +1,7 @@
 const stripe = require("stripe")(process.env.STRIPE_API_SK);
 const prisma = require("../models/prisma");
 
-module.exports.catchCheckoutResult = (request, response) => {
+module.exports.catchCheckoutResult = async (request, response) => {
   const sig = request.headers["stripe-signature"];
   let event;
 
@@ -9,7 +9,7 @@ module.exports.catchCheckoutResult = (request, response) => {
     event = stripe.webhooks.constructEvent(
       request.body,
       sig,
-      process.env.ENDPOINT_SECRET
+      "whsec_JtuoJ3Bvb8Ikj6KbISbE9TAK2cacPuux"
     );
     // console.log(event);
   } catch (err) {
@@ -18,29 +18,35 @@ module.exports.catchCheckoutResult = (request, response) => {
     return;
   }
 
-  switch (event.type) {
-    case "checkout.session.async_payment_failed":
-      const checkoutSessionAsyncPaymentFailed = event.data.object;
-      // Then define and call a function to handle the event checkout.session.async_payment_failed
-      break;
-    case "checkout.session.async_payment_succeeded":
-      const checkoutSessionAsyncPaymentSucceeded = event.data.object;
-      console.log(checkoutSessionAsyncPaymentSucceeded);
-      // Then define and call a function to handle the event checkout.session.async_payment_succeeded
-      break;
-    case "checkout.session.completed":
-      const checkoutSessionCompleted = event.data.object;
+  if (event.type === "checkout.session.completed") {
+    const checkoutSessionCompleted = event.data.object;
+    const transactionItems = JSON.parse(
+      checkoutSessionCompleted.metadata.transactionItems
+    );
+    const billTotal = transactionItems.reduce(
+      (acc, cur) => acc + Number(cur.billPerTransaction),
+      0
+    );
+    console.log(transactionItems);
+    console.log(billTotal);
 
-      console.log(checkoutSessionCompleted);
-      // Then define and call a function to handle the event checkout.session.completed
-      break;
-    case "checkout.session.expired":
-      const checkoutSessionExpired = event.data.object;
-      // Then define and call a function to handle the event checkout.session.expired
-      break;
-    // ... handle other event types
-    default:
-      console.log(`Unhandled event type ${event.type}`);
+    // const transaction = await prisma.transaction.create({
+    //   data: {
+    //     id: checkoutSessionCompleted.id,
+    //     totalBill: billTotal,
+    //   },
+    // });
+    // await prisma.transactionItems.createMany({
+    //   data: transactionItems.map((item) => {
+    //     return { ...item, transactionId: transaction.id };
+    //   }),
+    // });
+
+    // const order = await prisma.orderItem.create({
+    //   data: {
+
+    //   },
+    // });
   }
 
   response.send();

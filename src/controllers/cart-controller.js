@@ -207,9 +207,11 @@ exports.checkoutPayment = async (req, res, next) => {
 
     const transactionItems = cart.map((product) => {
       return {
-        sellerId: `${product.product.sellerId}`,
-        buyerId: `${req.user.id}`,
-        billPerTransaction: `${product.amount * product.product.price}`,
+        productId: product.product.id,
+        amount: product.amount,
+        sellerId: product.product.sellerId,
+        buyerId: req.user.id,
+        billPerTransaction: product.amount * product.product.price,
       };
     });
 
@@ -218,8 +220,11 @@ exports.checkoutPayment = async (req, res, next) => {
       success_url: "http://localhost:3000",
       line_items: productToCheckout,
       mode: "payment",
-      metadata: { transactionItems: JSON.stringify(transactionItems) },
+      metadata: {
+        transactionItems: JSON.stringify(transactionItems),
+      },
     });
+
 
     res.json({ paymentUrl: session });
   } catch (error) {

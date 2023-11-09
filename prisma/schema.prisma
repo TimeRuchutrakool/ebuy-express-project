@@ -23,7 +23,6 @@ model User {
   review       Review[]
   cartItem     CartItem[]
   wishItem     WishItem[]
-  orderSeller  Order[]           @relation("seller")
   orderBuyer   Order[]           @relation("buyer")
   bidSeller    BidProduct[]      @relation("seller")
   bidBuyer     BidProduct[]      @relation("buyer")
@@ -198,12 +197,11 @@ model WishItem {
 
 ////////////////////// Order //////////////////////
 model Order {
-  id        Int         @id @default(autoincrement())
-  createAt  DateTime    @default(now()) @map("create_at")
-  buyerId   Int         @map("buyer_id")
-  buyer     User        @relation("buyer", fields: [buyerId], references: [id])
-  sellerId  Int         @map("seller_id")
-  seller    User        @relation("seller", fields: [sellerId], references: [id])
+  id       Int      @id @default(autoincrement())
+  createAt DateTime @default(now()) @map("create_at")
+  buyerId  Int      @map("buyer_id")
+  buyer    User     @relation("buyer", fields: [buyerId], references: [id])
+
   OrderItem OrderItem[]
 
   @@map("orders")
