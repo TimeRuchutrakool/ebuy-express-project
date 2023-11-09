@@ -102,12 +102,42 @@ exports.getMystore = async (req, res, next) => {
     next(error);
   }
 };
-
+exports.getMyBidProducts = async (req,res,next)=>{
+  try {
+        const userId = req.user.id
+        
+        const findBidProduct = await prisma.bidProduct.findMany({
+          where :{
+            sellerId : userId
+          },include : {
+            ProductImage : true
+          }
+          
+        })
+       
+        
+        const data = findBidProduct.map( (el)=> {
+          return {
+            id : el.id,
+            name :el.name,
+            description : el.description,
+            price : el.initialPrice,
+            timeStart :el.startedAt,
+            timeDuration : el.duration,
+            imageUrl : el.ProductImage[0]
+          }
+        })
+        console.log(data)
+    res.status(200).json({myBidProduct : data})
+  } catch (err) {
+    next(err)
+  }
+}
 exports.editAddress = async (req, res, next) => {
   try {
     const { id } = req.user;
     const obj = req.body;
-    const updatedAddress = await prisma.address.update({
+    const updatedAddress = await prisma.address.updateMany({
       where: {
         userId: id,
       },
