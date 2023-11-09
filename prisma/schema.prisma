@@ -215,7 +215,7 @@ model OrderItem {
   orderId       Int         @map("order_id")
   order         Order       @relation(fields: [orderId], references: [id])
   bidProductId  Int?        @map("bid_product_id")
-  bidId         BidProduct? @relation(fields: [bidProductId], references: [id])
+  bidProduct    BidProduct? @relation(fields: [bidProductId], references: [id])
   productId     Int?        @map("product_id")
   product       Product?    @relation(fields: [productId], references: [id])
   transactionId String

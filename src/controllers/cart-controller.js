@@ -198,9 +198,10 @@ exports.checkoutPayment = async (req, res, next) => {
         buyerId: req.user.id,
       },
       include: {
-        product: true,
+        product: { include: { ProductVariant: true } },
       },
     });
+
     const productToCheckout = cart.map((product) => {
       return { price: product.product.stripeApiId, quantity: product.amount };
     });
@@ -212,6 +213,9 @@ exports.checkoutPayment = async (req, res, next) => {
         sellerId: product.product.sellerId,
         buyerId: req.user.id,
         billPerTransaction: product.amount * product.product.price,
+        productVariantId: product.product.ProductVariant.find(
+          (v) => v.productId === product.product.id
+        ).id,
       };
     });
 
@@ -224,7 +228,6 @@ exports.checkoutPayment = async (req, res, next) => {
         transactionItems: JSON.stringify(transactionItems),
       },
     });
-
 
     res.json({ paymentUrl: session });
   } catch (error) {
