@@ -600,3 +600,39 @@ exports.getVariant = async (req, res, next) => {
     next(error);
   }
 };
+
+exports.deleteProduct = async (req,res,next)=>{
+  try {
+    const {value,error} = checkProductIdSchema.validate(req.params)
+    console.log(value.productId)
+    // console.log(error)
+   
+    if(error)
+    {
+      return res
+        .status(400)
+        .json({ message: "This product is not available information" });
+    }
+
+    await prisma.productVariant.deleteMany({
+      where : {
+        productId : +value.productId
+      }
+    })
+
+    await prisma.productImage.deleteMany({
+      where : {
+        productId : +value.productId
+      }
+    })
+
+    await prisma.product.deleteMany({
+      where : {
+        id : +value.productId
+      }
+    })
+    res.json({message : "Delete Success"})
+  } catch (error) {
+    next(error)
+  }
+}
