@@ -7,4 +7,5 @@ const router = express.Router();
 
 
 router.post("/create",authenticatedMiddleware,uploadMiddleware.array("image"),bidController.createBidProducts)
+router.get("/",authenticatedMiddleware,bidController.getBidProducts)
 module.exports = router;
