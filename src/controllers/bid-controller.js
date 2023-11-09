@@ -1,8 +1,6 @@
 const prisma = require("../models/prisma");
 const fs = require("fs/promises");
 const { upload } = require("../utils/cloudinaryServices");
-const dayjs = require("dayjs");
-const duration = require("dayjs/plugin/duration");
 
 const createError = require("../utils/create-error");
 
