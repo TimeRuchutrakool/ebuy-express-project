@@ -18,7 +18,9 @@ router.patch(
   userController.updateProfileImage
 );
 router.get("/mystore", authenticatedMiddleware, userController.getMystore);
+
 module.exports = router;
+
 router.patch(
   "/editProfile",
   authenticatedMiddleware,
