@@ -14,7 +14,7 @@ try {
     const data = req.body   //  data.timeDuration  จำนวน ชม ที่รับเข้ามา
     const files = req.files
     // console.log(files.length)
-    // console.log(data)
+    console.log(data)
     // time start 20.00 
     // time bid  
     // 1 hr => 60 min 
@@ -23,7 +23,7 @@ try {
     const changTimeDuration =(input)=> (input*60*60)*1000
 
     dayjs.extend(duration)
-    const timeStart = dayjs('2023-11-10 20:00')  // data.startTime '2023-11-10 20:00' 
+    const timeStart = dayjs(data.startTime)  // data.startTime '2023-11-10 20:00' 
     const timeEnd =timeStart.add(dayjs.duration({'hour' : data.timeDuration})) //####
     const timeDuration = timeEnd.diff(timeStart) // ####
 
@@ -42,29 +42,29 @@ try {
             description : data.description,
             initialPrice : data.price,
             sellerId : sellerId,
-            startAt : timeStart,
-            endAt : timeEnd,
+            startedAt : timeStart,
+            duration : timeEnd,
         }
     })
     console.log(bidProduct)
 
-    const urls = [];
+    // const urls = [];
     
-    for (const file of files) {
-      const { path } = file;
-      const url = await upload(path);
-      urls.push(url);
+    // for (const file of files) {
+    //   const { path } = file;
+    //   const url = await upload(path);
+    //   urls.push(url);
     
-    }
+    // }
     
-    const images = [];
-    for (const image of urls) {
-      images.push({ imageUrl: image, bidProductId: bidProduct.id });
-    }
+    // const images = [];
+    // for (const image of urls) {
+    //   images.push({ imageUrl: image, bidProductId: bidProduct.id });
+    // }
 
-    await prisma.productImage.createMany({
-        data: images,
-      });
+    // await prisma.productImage.createMany({
+    //     data: images,
+    //   });
 
     res.status(200).json({message: "OK"})
 } catch (err) {
