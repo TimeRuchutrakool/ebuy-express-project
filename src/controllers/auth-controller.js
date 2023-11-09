@@ -13,6 +13,9 @@ exports.register = async (req, res, next) => {
     value.password = await bcrypt.hash(value.password, 12);
     const user = await prisma.user.create({
       data: value,
+      select : {
+        profileImage : "https://res.cloudinary.com/db3ltztig/image/upload/v1699439097/w5rtm4xqqbt584nooq7g.jpg"
+      }
     });
 
     const payload = { userId: user.id };
@@ -23,6 +26,11 @@ exports.register = async (req, res, next) => {
         expiresIn: process.env.JWT_EXPIRE,
       }
     );
+    await prisma.address.create({
+      data: {
+        userId: user.id,
+      },
+    });
     delete user.password;
     res.status(201).json({ accessToken, user });
   } catch (error) {
@@ -59,6 +67,7 @@ exports.login = async (req, res, next) => {
       }
     );
     delete user.password;
+
     res.status(201).json({ accessToken, user });
   } catch (error) {
     console.log(

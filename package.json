@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon src/app.js"
+    "dev": "nodemon src/app.js",
+    "build": "npm install prisma@4.16.2 && npx prisma generate && npm install",
+    "start": "node src/app.js"
   },
   "keywords": [],
   "author": "",
@@ -23,6 +25,7 @@
     "multer": "1.4.5-lts.1",
     "prisma": "^5.5.2",
     "socket.io": "^4.7.2",
+    "stripe": "^14.3.0",
     "uuid": "^9.0.1"
   },
   "devDependencies": {

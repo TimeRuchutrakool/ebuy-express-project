@@ -10,6 +10,7 @@ const cartRoute = require("./routes/cart-route");
 const productRoute = require("./routes/product-route");
 const wishRoute = require("./routes/wish-route");
 const userRoute = require("./routes/user-route");
+const paymentController = require("./controllers/paymentController");
 const bidRoute =require("./routes/bid-route")
 const notFoundMiddleware = require("./middlewares/not-found")
 const errorMiddleware =require("./middlewares/error")
@@ -25,6 +26,13 @@ const httpServer = http.createServer(app);
 
 app.use(cors());
 app.use(morgan("dev"));
+
+app.post(
+  "/webhook",
+  express.raw({ type: "application/json" }),
+  paymentController.catchCheckoutResult
+);
+
 app.use(express.json());
 
 app.use("/auth", authRoute);

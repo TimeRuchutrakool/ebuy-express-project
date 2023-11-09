@@ -1,7 +1,10 @@
+require('dotenv').config()
 const prisma = require("../models/prisma");
 const createError = require("../utils/create-error");
 const fs = require("fs/promises");
 const { upload } = require("../utils/cloudinaryServices");
+const { v4 } = require("uuid");
+const stripe = require('stripe')(process.env.STRIPE_API_SK);
 const {
   checkProductSchema,
   checkProductVariantSchema,
@@ -32,17 +35,10 @@ exports.createProduct = async (req, res, next) => {
       categoryId,
       sizeAndStock,
     } = value;
-    const product = await prisma.product.create({
-      data: {
-        sellerId,
-        name,
-        price,
-        description,
-        typeId,
-        brandId,
-        categoryId,
-      },
-    });
+
+   
+    
+ 
 
     if (!req.files) {
       next(createError("product image is required", 400));
@@ -56,6 +52,31 @@ exports.createProduct = async (req, res, next) => {
       urls.push(url);
       fs.unlink(path);
     }
+
+    const createStripeProduct = await stripe.products.create({
+      name,description,images : [urls[0]]
+    })
+
+    const createStripePrice = await stripe.prices.create({
+      unit_amount : price*100,
+      currency : 'thb',
+      billing_scheme : "per_unit",
+      product : `${createStripeProduct.id}`
+    })
+    //  console.log(createStripePrice)
+
+    const product = await prisma.product.create({
+      data: {
+        sellerId,
+        name,
+        price,
+        description,
+        typeId,
+        brandId,
+        categoryId,
+        stripeApiId: createStripePrice.id,
+      },
+    });
 
     const images = [];
     for (const image of urls) {
@@ -109,7 +130,7 @@ exports.createProduct = async (req, res, next) => {
       });
     }
 
-    res.status(201).json({ message: "Success" });
+    res.status(201).json({ message: "Success" ,product});
   } catch (err) {
     console.log(
       "🚀 ~ file: product-controller.js:93 ~ exports.createProduct= ~ err:",

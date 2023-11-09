@@ -18,7 +18,6 @@ model User {
   email        String            @unique
   password     String
   point        Int               @default(0)
-  address      String?
   profileImage String?           @map("profile_image")
   products     Product[]
   review       Review[]
@@ -46,7 +45,7 @@ model Product {
   description    String           @db.LongText
   createdAt      DateTime         @default(now()) @map("create_at")
   avgRating      Decimal          @default(0) @db.Decimal(2, 1)
-  stripeApiId    String           @map("stripe_api_id")
+  stripeApiId    String?          @map("stripe_api_id")
   sellerId       Int              @map("seller_id")
   users          User             @relation(fields: [sellerId], references: [id])
   typeId         Int              @map("type_id")
@@ -235,15 +234,15 @@ model BidProduct {
   name         String
   description  String
   initialPrice Decimal        @db.Decimal(10, 2)
-  startAt      DateTime       @map("start_at")
-  endAt        DateTime       @map("end_at")
-  createAt     DateTime       @default(now()) @map("created_at")
-  updateAt     DateTime?      @map("updated_at")
+  startedAt    DateTime       @map("started_at")
+  duration     Decimal
+  createdAt    DateTime       @default(now()) @map("created_at")
+  updatedAt    DateTime?      @map("updated_at")
   bidPrice     Decimal?       @db.Decimal(10, 2)
   buyer        User?          @relation("buyer", fields: [buyerId], references: [id])
   buyerId      Int?           @map("buyer_id")
   sellerId     Int            @map("seller_id")
-  seller       User           @relation("seller", fields: [sellerId], references: [id])
+  seller       User?          @relation("seller", fields: [sellerId], references: [id])
   OrderItem    OrderItem[]
   ProductImage ProductImage[]
 
@@ -276,14 +275,11 @@ model Message {
 }
 
 model Address {
-  id          Int    @id @default(autoincrement())
-  houseNum    String @map("house_number")
-  subDistrict String @map("sub_district")
-  district    String
-  zone        String
-  province    String
-  city        String
-  zipcode     String
+  id         Int     @id @default(autoincrement())
+  address    String?
+  province   String?
+  city       String?
+  postalcode String?
 
   userId Int  @unique @map("user_id")
   user   User @relation(fields: [userId], references: [id])
