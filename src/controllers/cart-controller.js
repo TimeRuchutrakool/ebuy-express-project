@@ -198,18 +198,24 @@ exports.checkoutPayment = async (req, res, next) => {
         buyerId: req.user.id,
       },
       include: {
-        product: true,
+        product: { include: { ProductVariant: true } },
       },
     });
+
     const productToCheckout = cart.map((product) => {
       return { price: product.product.stripeApiId, quantity: product.amount };
     });
 
     const transactionItems = cart.map((product) => {
       return {
-        sellerId: `${product.product.sellerId}`,
-        buyerId: `${req.user.id}`,
-        billPerTransaction: `${product.amount * product.product.price}`,
+        productId: product.product.id,
+        amount: product.amount,
+        sellerId: product.product.sellerId,
+        buyerId: req.user.id,
+        billPerTransaction: product.amount * product.product.price,
+        productVariantId: product.product.ProductVariant.find(
+          (v) => v.productId === product.product.id
+        ).id,
       };
     });
 
@@ -218,7 +224,9 @@ exports.checkoutPayment = async (req, res, next) => {
       success_url: "http://localhost:3000",
       line_items: productToCheckout,
       mode: "payment",
-      metadata: { transactionItems: JSON.stringify(transactionItems) },
+      metadata: {
+        transactionItems: JSON.stringify(transactionItems),
+      },
     });
 
     res.json({ paymentUrl: session });
