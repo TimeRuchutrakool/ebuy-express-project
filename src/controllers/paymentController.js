@@ -20,15 +20,16 @@ module.exports.catchCheckoutResult = async (request, response) => {
 
   if (event.type === "checkout.session.completed") {
     const checkoutSessionCompleted = event.data.object;
-    const transactionItems = JSON.parse(
-      checkoutSessionCompleted.metadata.transactionItems
-    );
-    const billTotal = transactionItems.reduce(
-      (acc, cur) => acc + Number(cur.billPerTransaction),
-      0
-    );
-    console.log(transactionItems);
-    console.log(billTotal);
+    console.log(checkoutSessionCompleted);
+    // const transactionItems = JSON.parse(
+    //   checkoutSessionCompleted.metadata.transactionItems
+    // );
+    // const billTotal = transactionItems.reduce(
+    //   (acc, cur) => acc + Number(cur.billPerTransaction),
+    //   0
+    // );
+    // console.log(transactionItems);
+    // console.log(billTotal);
 
     // const transaction = await prisma.transaction.create({
     //   data: {
@@ -42,11 +43,14 @@ module.exports.catchCheckoutResult = async (request, response) => {
     //   }),
     // });
 
-    // const order = await prisma.orderItem.create({
+    // const order = await prisma.order.create({
     //   data: {
-
+    //     buyerId: transactionItems[0].buyerId,
     //   },
     // });
+    // const orderItem = await prisma.orderItem.createMany({
+
+    // })
   }
 
   response.send();
