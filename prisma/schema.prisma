@@ -23,7 +23,6 @@ model User {
   review       Review[]
   cartItem     CartItem[]
   wishItem     WishItem[]
-  orderSeller  Order[]           @relation("seller")
   orderBuyer   Order[]           @relation("buyer")
   bidSeller    BidProduct[]      @relation("seller")
   bidBuyer     BidProduct[]      @relation("buyer")
@@ -198,32 +197,29 @@ model WishItem {
 
 ////////////////////// Order //////////////////////
 model Order {
-  id        Int         @id @default(autoincrement())
-  createAt  DateTime    @default(now()) @map("create_at")
-  buyerId   Int         @map("buyer_id")
-  buyer     User        @relation("buyer", fields: [buyerId], references: [id])
-  sellerId  Int         @map("seller_id")
-  seller    User        @relation("seller", fields: [sellerId], references: [id])
+  id       Int      @id @default(autoincrement())
+  createAt DateTime @default(now()) @map("create_at")
+  buyerId  Int      @map("buyer_id")
+  buyer    User     @relation("buyer", fields: [buyerId], references: [id])
+
   OrderItem OrderItem[]
 
   @@map("orders")
 }
 
 model OrderItem {
-  id             Int         @id @default(autoincrement())
-  amount         Int
-  trackNum       String?     @map("track_number")
-  logisticsName  String?     @map("logistics_name")
-  transactionNum Int         @map("transaction_number")
-  paymentMethod  String      @map("payment_method")
-  orderId        Int         @map("order_id")
-  order          Order       @relation(fields: [orderId], references: [id])
-  bidProductId   Int?        @map("bid_product_id")
-  bidId          BidProduct? @relation(fields: [bidProductId], references: [id])
-  productId      Int?        @map("product_id")
-  product        Product?    @relation(fields: [productId], references: [id])
-  transactionId  String
-  transaction    Transaction @relation(fields: [transactionId], references: [id])
+  id            Int         @id @default(autoincrement())
+  amount        Int
+  trackNum      String?     @map("track_number")
+  logisticsName String?     @map("logistics_name")
+  orderId       Int         @map("order_id")
+  order         Order       @relation(fields: [orderId], references: [id])
+  bidProductId  Int?        @map("bid_product_id")
+  bidProduct    BidProduct? @relation(fields: [bidProductId], references: [id])
+  productId     Int?        @map("product_id")
+  product       Product?    @relation(fields: [productId], references: [id])
+  transactionId String
+  transaction   Transaction @relation(fields: [transactionId], references: [id])
 
   @@map("order_items")
 }
