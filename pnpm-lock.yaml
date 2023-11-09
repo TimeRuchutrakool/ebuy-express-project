@@ -41,6 +41,9 @@ dependencies:
   socket.io:
     specifier: ^4.7.2
     version: 4.7.2
+  stripe:
+    specifier: ^14.3.0
+    version: 14.3.0
   uuid:
     specifier: ^9.0.1
     version: 9.0.1
@@ -1186,6 +1189,14 @@ packages:
     engines: {node: '>=8'}
     dependencies:
       ansi-regex: 5.0.1
+    dev: false
+
+  /stripe@14.3.0:
+    resolution: {integrity: sha512-R3s+3ONM1XFOTzbMSIML0tixbkuz+gFY/p1h1Qxd9OUftxS8m+rGeBv4ZnvoVhTUwOokArfzQtQlR2Re9XnyQw==}
+    engines: {node: '>=12.*'}
+    dependencies:
+      '@types/node': 20.8.10
+      qs: 6.11.0
     dev: false
 
   /tar@6.2.0:
