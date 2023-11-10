@@ -109,3 +109,27 @@ exports.getBidProducts = async (req, res, next) => {
     next(err);
   }
 };
+exports.getAllBidProducts =async (req,res,next)=> {
+  try {
+    const findProduct = await prisma.bidProduct.findMany({
+      include :{
+        ProductImage : true
+      }
+    })
+    
+    const data = findProduct.map( (el)=>{
+      return {
+        id : el.id,
+        name : el.name,
+        price : el.initialPrice,
+        startedAt : el.startedAt,
+        duration  : el.duration,
+        imageUrl : el.ProductImage[0].imageUrl
+      }
+    })
+    console.log(data)
+    res.status(200).json({product : data})
+  } catch (err) {
+    next(err)
+  }
+}
