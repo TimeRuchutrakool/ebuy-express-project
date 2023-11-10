@@ -13,9 +13,10 @@ exports.register = async (req, res, next) => {
     value.password = await bcrypt.hash(value.password, 12);
     const user = await prisma.user.create({
       data: value,
-      select : {
-        profileImage : "https://res.cloudinary.com/db3ltztig/image/upload/v1699439097/w5rtm4xqqbt584nooq7g.jpg"
-      }
+      select: {
+        profileImage:
+          "https://res.cloudinary.com/db3ltztig/image/upload/v1699439097/w5rtm4xqqbt584nooq7g.jpg",
+      },
     });
 
     const payload = { userId: user.id };
@@ -48,6 +49,9 @@ exports.login = async (req, res, next) => {
       where: {
         email: value.email,
       },
+      include: {
+        Address: true,
+      },
     });
     if (!user) {
       return next(createError("invalid credential", 400));
@@ -67,6 +71,8 @@ exports.login = async (req, res, next) => {
       }
     );
     delete user.password;
+    user.address = user.Address
+    delete user.Address
 
     res.status(201).json({ accessToken, user });
   } catch (error) {

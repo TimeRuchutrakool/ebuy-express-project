@@ -102,12 +102,41 @@ exports.getMystore = async (req, res, next) => {
     next(error);
   }
 };
+exports.getMyBidProducts = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
 
+    const findBidProduct = await prisma.bidProduct.findMany({
+      where: {
+        sellerId: userId,
+      },
+      include: {
+        ProductImage: true,
+      },
+    });
+
+    const data = findBidProduct.map((el) => {
+      return {
+        id: el.id,
+        name: el.name,
+        description: el.description,
+        price: el.initialPrice,
+        timeStart: el.startedAt,
+        timeDuration: el.duration,
+        imageUrl: el.ProductImage[0],
+      };
+    });
+    console.log(data);
+    res.status(200).json({ myBidProduct: data });
+  } catch (err) {
+    next(err);
+  }
+};
 exports.editAddress = async (req, res, next) => {
   try {
     const { id } = req.user;
     const obj = req.body;
-    const updatedAddress = await prisma.address.update({
+    const updatedAddress = await prisma.address.updateMany({
       where: {
         userId: id,
       },
@@ -117,5 +146,61 @@ exports.editAddress = async (req, res, next) => {
     res.json({ updatedAddress });
   } catch (error) {
     next(error);
+  }
+};
+exports.getEditProductById = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    console.log(userId);
+    const productId = req.params.productId;
+    // console.log(productId)
+    const findProduct = await prisma.product.findFirst({
+      where: {
+        id: +productId,
+      },
+      include: {
+        users: true,
+        types: true,
+        brands: true,
+        ProductImage: true,
+        ProductVariant: {},
+        category: true,
+      },
+    });
+    const { ProductVariant } = findProduct;
+
+    function removeNullValues(obj) {
+      for (const key in obj) {
+        if (obj[key] === null) {
+          delete obj[key];
+        }
+      }
+    }
+
+    const productVariantsWithoutNull = ProductVariant.map((variant) => {
+      const copyVariant = { ...variant };
+      removeNullValues(copyVariant);
+      delete copyVariant.productId;
+
+      return copyVariant;
+    });
+
+    const data = {
+      id: findProduct.id,
+      name: findProduct.name,
+      price: findProduct.price,
+      description: findProduct.description,
+      typeId: findProduct.types.id,
+      brandId: findProduct.brands.id,
+      images: findProduct.ProductImage.map((el) => {
+        return { id: el.id, imageUrl: el.imageUrl };
+      }),
+      productVariants: productVariantsWithoutNull,
+      categoryId: findProduct.category.id,
+    };
+    console.log(data);
+    res.status(200).json({ product: data });
+  } catch (err) {
+    next(err);
   }
 };

@@ -18,23 +18,16 @@ router.patch(
   userController.updateProfileImage
 );
 router.get("/mystore", authenticatedMiddleware, userController.getMystore);
-
-module.exports = router;
-
-router.patch(
-  "/editProfile",
+router.get(
+  "/myBidProduct",
   authenticatedMiddleware,
-  userController.editProfile
-);
-router.patch(
-  "/editProflieImage",
-  authenticatedMiddleware,
-  uploadMiddleware.single("profileImage"),
-  userController.updateProfileImage
+  userController.getMyBidProducts
 );
 router.patch(
   "/editAddress",
   authenticatedMiddleware,
   userController.editAddress
 );
+
+router.get("/editProductById/:productId",authenticatedMiddleware,userController.getEditProductById)
 module.exports = router;
