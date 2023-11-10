@@ -1,10 +1,10 @@
-require('dotenv').config()
+require("dotenv").config();
 const prisma = require("../models/prisma");
 const createError = require("../utils/create-error");
 const fs = require("fs/promises");
 const { upload } = require("../utils/cloudinaryServices");
 const { v4 } = require("uuid");
-const stripe = require('stripe')(process.env.STRIPE_API_SK);
+const stripe = require("stripe")(process.env.STRIPE_API_SK);
 const {
   checkProductSchema,
   checkProductVariantSchema,
@@ -36,10 +36,6 @@ exports.createProduct = async (req, res, next) => {
       sizeAndStock,
     } = value;
 
-   
-    
- 
-
     if (!req.files) {
       next(createError("product image is required", 400));
     }
@@ -54,15 +50,17 @@ exports.createProduct = async (req, res, next) => {
     }
 
     const createStripeProduct = await stripe.products.create({
-      name,description,images : [urls[0]]
-    })
+      name,
+      description,
+      images: [urls[0]],
+    });
 
     const createStripePrice = await stripe.prices.create({
-      unit_amount : price*100,
-      currency : 'thb',
-      billing_scheme : "per_unit",
-      product : `${createStripeProduct.id}`
-    })
+      unit_amount: price * 100,
+      currency: "thb",
+      billing_scheme: "per_unit",
+      product: `${createStripeProduct.id}`,
+    });
     //  console.log(createStripePrice)
 
     const product = await prisma.product.create({
@@ -130,7 +128,7 @@ exports.createProduct = async (req, res, next) => {
       });
     }
 
-    res.status(201).json({ message: "Success" ,product});
+    res.status(201).json({ message: "Success", product });
   } catch (err) {
     console.log(
       "🚀 ~ file: product-controller.js:93 ~ exports.createProduct= ~ err:",
@@ -601,38 +599,64 @@ exports.getVariant = async (req, res, next) => {
   }
 };
 
-exports.deleteProduct = async (req,res,next)=>{
+exports.deleteProduct = async (req, res, next) => {
   try {
-    const {value,error} = checkProductIdSchema.validate(req.params)
-    console.log(value.productId)
+    const { value, error } = checkProductIdSchema.validate(req.params);
+    console.log("helooooo", value.productId);
     // console.log(error)
-   
-    if(error)
-    {
+
+    if (error) {
       return res
         .status(400)
         .json({ message: "This product is not available information" });
     }
+    const targetProduct = await prisma.product.findFirst({
+      where: {
+        id: +value.productId,
+      },
+    });
+
+    await prisma.review.deleteMany({
+      where: {
+        productId: +value.productId,
+      },
+    });
+    await prisma.cartItem.deleteMany({
+      where: {
+        productId: +value.productId,
+      },
+    });
+    await prisma.wishItem.deleteMany({
+      where: {
+        productId: +value.productId,
+      },
+    });
+    await prisma.orderItem.deleteMany({
+      where: {
+        productId: +value.productId,
+      },
+    });
 
     await prisma.productVariant.deleteMany({
-      where : {
-        productId : +value.productId
-      }
-    })
+      where: {
+        productId: +value.productId,
+      },
+    });
 
     await prisma.productImage.deleteMany({
-      where : {
-        productId : +value.productId
-      }
-    })
+      where: {
+        productId: +value.productId,
+      },
+    });
 
-    await prisma.product.deleteMany({
-      where : {
-        id : +value.productId
-      }
-    })
-    res.json({message : "Delete Success"})
+    await prisma.product.delete({
+      where: {
+        id: +value.productId,
+      },
+    });
+
+    res.json({ targetProduct });
   } catch (error) {
-    next(error)
+    next(error);
   }
-}
+};
