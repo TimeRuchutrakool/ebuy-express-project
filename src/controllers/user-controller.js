@@ -3,7 +3,6 @@ const { upload } = require("../utils/cloudinaryServices");
 const fs = require("fs/promises");
 const createError = require("../utils/create-error");
 
-
 exports.updateProfileImage = async (req, res, next) => {
   try {
     const user = req.user;
@@ -103,37 +102,36 @@ exports.getMystore = async (req, res, next) => {
     next(error);
   }
 };
-exports.getMyBidProducts = async (req,res,next)=>{
+exports.getMyBidProducts = async (req, res, next) => {
   try {
-        const userId = req.user.id
-        
-        const findBidProduct = await prisma.bidProduct.findMany({
-          where :{
-            sellerId : userId
-          },include : {
-            ProductImage : true
-          }
-          
-        })
-       
-        
-        const data = findBidProduct.map( (el)=> {
-          return {
-            id : el.id,
-            name :el.name,
-            description : el.description,
-            price : el.initialPrice,
-            timeStart :el.startedAt,
-            timeDuration : el.duration,
-            imageUrl : el.ProductImage[0]
-          }
-        })
-        console.log(data)
-    res.status(200).json({myBidProduct : data})
+    const userId = req.user.id;
+
+    const findBidProduct = await prisma.bidProduct.findMany({
+      where: {
+        sellerId: userId,
+      },
+      include: {
+        ProductImage: true,
+      },
+    });
+
+    const data = findBidProduct.map((el) => {
+      return {
+        id: el.id,
+        name: el.name,
+        description: el.description,
+        price: el.initialPrice,
+        timeStart: el.startedAt,
+        timeDuration: el.duration,
+        imageUrl: el.ProductImage[0],
+      };
+    });
+    console.log(data);
+    res.status(200).json({ myBidProduct: data });
   } catch (err) {
-    next(err)
+    next(err);
   }
-}
+};
 exports.editAddress = async (req, res, next) => {
   try {
     const { id } = req.user;
@@ -150,28 +148,27 @@ exports.editAddress = async (req, res, next) => {
     next(error);
   }
 };
-exports.getEditProductById = async (req,res,next)=>{
+exports.getEditProductById = async (req, res, next) => {
   try {
-    const userId = req.user.id
-    console.log(userId)
-    const productId = req.params.productId
+    const userId = req.user.id;
+    console.log(userId);
+    const productId = req.params.productId;
     // console.log(productId)
     const findProduct = await prisma.product.findFirst({
-      where : {
-        id : +productId
-      },include :{
+      where: {
+        id: +productId,
+      },
+      include: {
         users: true,
         types: true,
         brands: true,
         ProductImage: true,
-        ProductVariant: {
-
-        },
+        ProductVariant: {},
         category: true,
-      }
-    })
-    const { ProductVariant } = findProduct
-    
+      },
+    });
+    const { ProductVariant } = findProduct;
+
     function removeNullValues(obj) {
       for (const key in obj) {
         if (obj[key] === null) {
@@ -183,26 +180,27 @@ exports.getEditProductById = async (req,res,next)=>{
     const productVariantsWithoutNull = ProductVariant.map((variant) => {
       const copyVariant = { ...variant };
       removeNullValues(copyVariant);
+      delete copyVariant.productId;
+      delete copyVariant.id;
       return copyVariant;
     });
 
     const data = {
-      id : findProduct.id,
-      name : findProduct.name,
-      price : findProduct.price,
-      description : findProduct.description,
-      typeId : findProduct.types.id,
-      brandId : findProduct.brands.id,
-      images : findProduct.ProductImage.map( (el)=> {
-        return { id : el.id, imageUrl : el.imageUrl}
+      id: findProduct.id,
+      name: findProduct.name,
+      price: findProduct.price,
+      description: findProduct.description,
+      typeId: findProduct.types.id,
+      brandId: findProduct.brands.id,
+      images: findProduct.ProductImage.map((el) => {
+        return { id: el.id, imageUrl: el.imageUrl };
       }),
-      productVariants : productVariantsWithoutNull,
-      categoryId : findProduct.category.id
-
-    }
-    console.log(data)
-    res.status(200).json({ product : data })
+      productVariants: productVariantsWithoutNull,
+      categoryId: findProduct.category.id,
+    };
+    console.log(data);
+    res.status(200).json({ product: data });
   } catch (err) {
-    next(err)
+    next(err);
   }
-}
+};
