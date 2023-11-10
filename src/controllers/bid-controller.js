@@ -20,7 +20,7 @@ exports.createBidProducts = async (req, res, next) => {
         initialPrice: +data.price,
         sellerId: req.user.id,
         startedAt: new Date(data.startedAt),
-        duration: +data.duration*60*60*1000,
+        duration: +data.duration * 60 * 60 * 1000,
       },
     });
 
@@ -56,28 +56,29 @@ exports.createBidProducts = async (req, res, next) => {
 exports.getBidProductsById = async (req, res, next) => {
   try {
     const bidId = req.params.bidProductId;
-    console.log(bidId);
     const data = await prisma.bidProduct.findFirst({
       where: {
         id: +bidId,
       },
       include: {
+        seller: true,
         ProductImage: true,
       },
     });
-    console.log(data);
     const product = {
       id: data.id,
       name: data.name,
       description: data.description,
-      price: data.initialPrice,
+      initialPrice: data.initialPrice,
       startedAt: data.startedAt,
-      duration: data.duration,
-      sellerId: data.sellerId,
-      imageUrl: data.ProductImage.map((el) => el.imageUrl),
+      sellerFirstName: data.seller.firstName,
+      sellerLastName: data.seller.lastName,
+      duration: +data.duration,
+      images: data.ProductImage.map((el) => {
+        return { id: el.id, imageUrl: el.imageUrl };
+      }),
     };
-    console.log(product);
-    res.status(200).json({ bidProduct: product });
+    res.status(200).json({ product });
   } catch (err) {
     next(err);
   }

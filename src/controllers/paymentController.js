@@ -9,7 +9,7 @@ module.exports.catchCheckoutResult = async (request, response) => {
     event = stripe.webhooks.constructEvent(
       request.body,
       sig,
-      "whsec_VlOpt3PVp3dJL5KdxyDAjDnMQXfUJCea"
+      "whsec_Wbq7rc46XddwK7ZJtHhtL394WLKTWNCP"
     );
     // console.log(event);
   } catch (err) {
