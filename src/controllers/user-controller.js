@@ -197,7 +197,7 @@ exports.getEditProductById = async (req,res,next)=>{
         return { id : el.id, imageUrl : el.imageUrl}
       }),
       productVariants : productVariantsWithoutNull,
-     
+      categoryId : findProduct.category.id
 
     }
     console.log(data)
