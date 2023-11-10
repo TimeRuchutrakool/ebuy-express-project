@@ -181,7 +181,7 @@ exports.getEditProductById = async (req, res, next) => {
       const copyVariant = { ...variant };
       removeNullValues(copyVariant);
       delete copyVariant.productId;
-      delete copyVariant.id;
+
       return copyVariant;
     });
 
