@@ -3,6 +3,7 @@ const { upload } = require("../utils/cloudinaryServices");
 const fs = require("fs/promises");
 const createError = require("../utils/create-error");
 
+
 exports.updateProfileImage = async (req, res, next) => {
   try {
     const user = req.user;
@@ -149,3 +150,59 @@ exports.editAddress = async (req, res, next) => {
     next(error);
   }
 };
+exports.getEditProductById = async (req,res,next)=>{
+  try {
+    const userId = req.user.id
+    console.log(userId)
+    const productId = req.params.productId
+    // console.log(productId)
+    const findProduct = await prisma.product.findFirst({
+      where : {
+        id : +productId
+      },include :{
+        users: true,
+        types: true,
+        brands: true,
+        ProductImage: true,
+        ProductVariant: {
+
+        },
+        category: true,
+      }
+    })
+    const { ProductVariant } = findProduct
+    
+    function removeNullValues(obj) {
+      for (const key in obj) {
+        if (obj[key] === null) {
+          delete obj[key];
+        }
+      }
+    }
+
+    const productVariantsWithoutNull = ProductVariant.map((variant) => {
+      const copyVariant = { ...variant };
+      removeNullValues(copyVariant);
+      return copyVariant;
+    });
+
+    const data = {
+      id : findProduct.id,
+      name : findProduct.name,
+      price : findProduct.price,
+      description : findProduct.description,
+      typeId : findProduct.types.id,
+      brandId : findProduct.brands.id,
+      images : findProduct.ProductImage.map( (el)=> {
+        return { id : el.id, imageUrl : el.imageUrl}
+      }),
+      productVariants : productVariantsWithoutNull,
+     
+
+    }
+    console.log(data)
+    res.status(200).json({ product : data })
+  } catch (err) {
+    next(err)
+  }
+}

@@ -28,4 +28,6 @@ router.patch(
   authenticatedMiddleware,
   userController.editAddress
 );
+
+router.get("/editProductById/:productId",authenticatedMiddleware,userController.getEditProductById)
 module.exports = router;
