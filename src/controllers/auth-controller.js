@@ -11,11 +11,12 @@ exports.register = async (req, res, next) => {
       return next(error);
     }
     value.password = await bcrypt.hash(value.password, 12);
+    console.log(value);
     const user = await prisma.user.create({
-      data: value,
-      select: {
+      data: {
+        ...value,
         profileImage:
-          "https://res.cloudinary.com/db3ltztig/image/upload/v1699439097/w5rtm4xqqbt584nooq7g.jpg",
+          "https://writingcenter.fas.harvard.edu/sites/hwpi.harvard.edu/files/styles/os_files_xxlarge/public/writingcenter/files/person-icon.png?m=1614398157&itok=Bvj8bd7F",
       },
     });
 
@@ -71,8 +72,8 @@ exports.login = async (req, res, next) => {
       }
     );
     delete user.password;
-    user.address = user.Address
-    delete user.Address
+    user.address = user.Address;
+    delete user.Address;
 
     res.status(201).json({ accessToken, user });
   } catch (error) {
