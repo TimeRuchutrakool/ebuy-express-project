@@ -1,19 +1,21 @@
 const prisma = require("../models/prisma");
+const { auctioningRooms } = require("./auctionRoom");
 
-module.exports.joinBidingProduct = (io,socket) => {
-  socket.on("joinBidingProduct", async (data) => {
-    socket.join(data.productId);
+module.exports.joinBidingProduct = (io, socket) => {
+  socket.on("joinBidingProduct", async ({ bidProductId }) => {
+    socket.join(bidProductId);
     const bidProduct = await prisma.bidProduct.findFirst({
       where: {
-        id: +data.bidProductId,
+        id: +bidProductId,
       },
       include: {
         ProductImage: true,
       },
     });
+
     io.of("/bid")
-      .in(data.productId)
-      .emit(`getBiding/${data.productId}`, {
+      .in(`${bidProductId}`)
+      .emit(`getBiding/${bidProductId}`, {
         id: bidProduct.id,
         imageUrl: bidProduct.ProductImage[0].imageUrl,
         timeRemainings:
@@ -22,11 +24,71 @@ module.exports.joinBidingProduct = (io,socket) => {
           (Date.now() + 7 * 60 * 60 * 1000),
         name: bidProduct.name,
         description: bidProduct.description,
-        price: bidProduct.initialPrice,
+        latestBid: {
+          latestWinnerId: auctioningRooms[`${bidProductId}`]
+            ? auctioningRooms[`${bidProductId}`].latestWinnerId
+            : undefined,
+          latestBidPrice: auctioningRooms[`${bidProductId}`]
+            ? auctioningRooms[`${bidProductId}`].latestBidPrice
+            : +bidProduct.initialPrice,
+        },
       });
   });
 };
 
-module.exports.bidRequest = (socket) => {
-  socket.on("bidRequest", (data) => console.log(data));
+module.exports.bidRequest = (io, socket) => {
+  socket.on("bidRequest", ({ bidProductId, bidAmount, userId }) => {
+    socket.join(`${bidProductId}`);
+    const room = auctioningRooms[`${bidProductId}`];
+    if (!room)
+      auctioningRooms[`${bidProductId}`] = {
+        latestWinnerId: userId,
+        latestBidPrice: bidAmount,
+      };
+    else {
+      const currentPrice = auctioningRooms[`${bidProductId}`].latestBidPrice;
+      if (currentPrice < bidAmount) {
+        auctioningRooms[`${bidProductId}`].latestBidPrice = bidAmount;
+        auctioningRooms[`${bidProductId}`].latestWinnerId = userId;
+      }
+    }
+    io.of("/bid")
+      .in(`${bidProductId}`)
+      .emit(`responseBid/${bidProductId}`, {
+        latestBidPrice: auctioningRooms[`${bidProductId}`].latestBidPrice,
+        latestWinnerId: auctioningRooms[`${bidProductId}`].latestWinnerId,
+      });
+  });
 };
+
+module.exports.bidingFinished = (socket) => {
+  socket.on("bidingFinished", async ({ bidProductId }, cb) => {
+    socket.join(`${bidProductId}`);
+    const bidWinner = auctioningRooms[`${bidProductId}`] ?? {
+      latestWinnerId: 0,
+      latestBidPrice: 0,
+    };
+
+    const bidProduct = await prisma.bidProduct.findFirst({
+      where: {
+        id: +bidProductId,
+      },
+      include: {
+        ProductImage: true,
+      },
+    });
+
+    cb({
+      latestWinnerId: bidWinner.latestWinnerId,
+      latestBidPrice: bidWinner?.latestBidPrice,
+      product: {
+        id: bidProduct.id,
+        imageUrl: bidProduct.ProductImage[0].imageUrl,
+        name: bidProduct.name,
+        description: bidProduct.description,
+      },
+    });
+  });
+};
+
+// จ่ายตังค์ค่อย delete room

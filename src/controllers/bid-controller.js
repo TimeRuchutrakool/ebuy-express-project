@@ -109,3 +109,37 @@ exports.getBidProducts = async (req, res, next) => {
     next(err);
   }
 };
+
+exports.bidCheckout = async (req, res, next) => {
+  try {
+    const productId = +req.body.productId;
+    const product = await prisma.bidProduct.findFirst({
+      where: { id: productId },
+    });
+
+    // const transactionItems = cart.map((product) => {
+    //   return {
+    //     productId: product.product.id,
+    //     sellerId: product.product.sellerId,
+    //     buyerId: req.user.id,
+    //     billPerTransaction:
+    //   };
+    // });
+
+
+    //  // checkout session
+    //  const session = await stripe.checkout.sessions.create({
+    //   success_url: "http://localhost:3000",
+    //   line_items: productToCheckout,
+    //   mode: "payment",
+    //   metadata: {
+    //     transactionItems: JSON.stringify(transactionItems),
+    //   },
+    // });
+
+    // res.json({ paymentUrl: session });
+
+  } catch (error) {
+    next(error);
+  }
+};
