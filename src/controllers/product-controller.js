@@ -1,10 +1,10 @@
-require('dotenv').config()
+require("dotenv").config();
 const prisma = require("../models/prisma");
 const createError = require("../utils/create-error");
 const fs = require("fs/promises");
 const { upload } = require("../utils/cloudinaryServices");
 const { v4 } = require("uuid");
-const stripe = require('stripe')(process.env.STRIPE_API_SK);
+const stripe = require("stripe")(process.env.STRIPE_API_SK);
 const {
   checkProductSchema,
   checkProductVariantSchema,
@@ -36,10 +36,6 @@ exports.createProduct = async (req, res, next) => {
       sizeAndStock,
     } = value;
 
-   
-    
- 
-
     if (!req.files) {
       next(createError("product image is required", 400));
     }
@@ -54,15 +50,17 @@ exports.createProduct = async (req, res, next) => {
     }
 
     const createStripeProduct = await stripe.products.create({
-      name,description,images : [urls[0]]
-    })
+      name,
+      description,
+      images: [urls[0]],
+    });
 
     const createStripePrice = await stripe.prices.create({
-      unit_amount : price*100,
-      currency : 'thb',
-      billing_scheme : "per_unit",
-      product : `${createStripeProduct.id}`
-    })
+      unit_amount: price * 100,
+      currency: "thb",
+      billing_scheme: "per_unit",
+      product: `${createStripeProduct.id}`,
+    });
     //  console.log(createStripePrice)
 
     const product = await prisma.product.create({
@@ -130,7 +128,7 @@ exports.createProduct = async (req, res, next) => {
       });
     }
 
-    res.status(201).json({ message: "Success" ,product});
+    res.status(201).json({ message: "Success", product });
   } catch (err) {
     console.log(
       "🚀 ~ file: product-controller.js:93 ~ exports.createProduct= ~ err:",
@@ -143,7 +141,7 @@ exports.createProduct = async (req, res, next) => {
 ///////////////////// แก้ไขรายการสินค้า /////////////////////
 exports.updateProduct = async (req, res, next) => {
   try {
-    const { id: sellerId } = req.user;
+    console.log(req.body);
     const { value, error } = checkUpdateProductSchema.validate(req.body);
 
     if (error) {
@@ -205,14 +203,31 @@ exports.updateProduct = async (req, res, next) => {
     await prisma.productImage.createMany({
       data: images,
     });
-
     // ตรวจสอบและอัพเดทข้อมูลตัวแปรของสินค้า
     if (value.sizeAndStock && value.sizeAndStock.length > 0) {
       const productVariantArray = JSON.parse(sizeAndStock);
+      productVariantArray.map((obj) => {
+        delete obj.id;
+      });
+      const result = productVariantArray.map((item) => {
+        const newItem = {
+          colorId: Number(item.colorId),
+          stock: Number(item.stock),
+        };
 
+        if (item.shirtSizeId) {
+          newItem.shirtSizeId = Number(item.shirtSizeId);
+        } else if (item.shoeSizeId) {
+          newItem.shoeSizeId = Number(item.shoeSizeId);
+        } else if (item.pantsSizeId) {
+          newItem.pantsSizeId = Number(item.pantsSizeId);
+        }
+
+        return newItem;
+      });
       // ตรวจสอบข้อมูลตัวแปรของสินค้า
       const { value: variantValue, error: variantError } =
-        checkUpdateProductVariantSchema.validate(productVariantArray);
+        checkUpdateProductVariantSchema.validate(result);
 
       console.log(variantError);
       if (variantError) {
@@ -230,13 +245,13 @@ exports.updateProduct = async (req, res, next) => {
       });
 
       // ให้ทุกตัวแปรของสินค้ามี productId เป็น id ของ updatedProduct
-      for (const variant of productVariantArray) {
+      for (const variant of result) {
         variant.productId = productId;
       }
 
       // สร้างข้อมูลตัวแปรของสินค้าใหม่
       await prisma.productVariant.createMany({
-        data: productVariantArray,
+        data: result,
       });
     }
 
@@ -601,38 +616,37 @@ exports.getVariant = async (req, res, next) => {
   }
 };
 
-exports.deleteProduct = async (req,res,next)=>{
+exports.deleteProduct = async (req, res, next) => {
   try {
-    const {value,error} = checkProductIdSchema.validate(req.params)
-    console.log(value.productId)
+    const { value, error } = checkProductIdSchema.validate(req.params);
+    console.log(value.productId);
     // console.log(error)
-   
-    if(error)
-    {
+
+    if (error) {
       return res
         .status(400)
         .json({ message: "This product is not available information" });
     }
 
     await prisma.productVariant.deleteMany({
-      where : {
-        productId : +value.productId
-      }
-    })
+      where: {
+        productId: +value.productId,
+      },
+    });
 
     await prisma.productImage.deleteMany({
-      where : {
-        productId : +value.productId
-      }
-    })
+      where: {
+        productId: +value.productId,
+      },
+    });
 
     await prisma.product.deleteMany({
-      where : {
-        id : +value.productId
-      }
-    })
-    res.json({message : "Delete Success"})
+      where: {
+        id: +value.productId,
+      },
+    });
+    res.json({ message: "Delete Success" });
   } catch (error) {
-    next(error)
+    next(error);
   }
-}
+};
