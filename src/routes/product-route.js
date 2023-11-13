@@ -19,12 +19,16 @@ router.patch(
   productController.updateProduct
 );
 
-router.get("/variant",authenticates,productController.getVariant);
+router.get("/variant", authenticates, productController.getVariant);
 router.get("/search/:searchedTitle", productController.search);
 router.get("/productId/:productId", productController.getProductById);
 router.get("/productPopular", productController.getProductPopular);
 router.get("/review/:productId", productController.getReviewProduct);
 router.post("/review", authenticates, productController.createReview);
-router.delete("/delete/:productId",authenticates,productController.deleteProduct)
+router.delete(
+  "/delete/:productId",
+  authenticates,
+  productController.deleteProduct
+);
 
 module.exports = router;

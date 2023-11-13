@@ -151,10 +151,8 @@ exports.editAddress = async (req, res, next) => {
 };
 exports.getEditProductById = async (req, res, next) => {
   try {
-    const userId = req.user.id;
-    console.log(userId);
     const productId = req.params.productId;
-    // console.log(productId)
+
     const findProduct = await prisma.product.findFirst({
       where: {
         id: +productId,
@@ -182,7 +180,6 @@ exports.getEditProductById = async (req, res, next) => {
       const copyVariant = { ...variant };
       removeNullValues(copyVariant);
       delete copyVariant.productId;
-
       return copyVariant;
     });
 
@@ -199,7 +196,7 @@ exports.getEditProductById = async (req, res, next) => {
       productVariants: productVariantsWithoutNull,
       categoryId: findProduct.category.id,
     };
-    console.log(data);
+
     res.status(200).json({ product: data });
   } catch (err) {
     next(err);
