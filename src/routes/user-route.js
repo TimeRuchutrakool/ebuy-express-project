@@ -30,4 +30,8 @@ router.patch(
 );
 
 router.get("/editProductById/:productId",authenticatedMiddleware,userController.getEditProductById)
+router.get("/myOrder",authenticatedMiddleware,userController.getMyorder)
+router.patch("/track",authenticatedMiddleware,userController.confirmTrack)
+router.patch("/confirmReceipt",authenticatedMiddleware,userController.confirmReceipt)
+router.get("/mySale",authenticatedMiddleware,userController.getMySale)
 module.exports = router;

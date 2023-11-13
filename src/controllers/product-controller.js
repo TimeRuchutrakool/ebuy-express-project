@@ -424,7 +424,7 @@ exports.getProductById = async (req, res, next) => {
         .json({ message: "This product is not available information" });
     const { users, types, brands, ProductImage, ProductVariant, category } =
       product;
-
+    console.log(product)
     function removeNullValues(obj) {
       for (const key in obj) {
         if (obj[key] === null) {
