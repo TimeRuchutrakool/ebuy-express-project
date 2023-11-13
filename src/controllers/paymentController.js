@@ -99,6 +99,12 @@ const regularWebhooks = async (response, checkoutSessionCompleted) => {
       },
     });
   }
+  await prisma.user.update({
+    where: { id: transactionItems[0].buyerId },
+    data: {
+      point: { increment: +billTotal * 0.1 },
+    },
+  });
   console.log("------------------------Regular------------------------");
 
   response.send();
@@ -135,6 +141,12 @@ const auctionWebhooks = async (response, checkoutSessionCompleted) => {
       bidProductId: transactionItems.productId,
       amount: transactionItems.amount,
       transactionId: transaction.id,
+    },
+  });
+  await prisma.user.update({
+    where: { id: transactionItems[0].buyerId },
+    data: {
+      point: { increment: +transactionItems.billPerTransaction * 0.1 },
     },
   });
 

@@ -24,8 +24,8 @@ const cartProductObject = (product) => {
     shoeSizeName: product.shoeSize?.name,
     shirtSizeId: product.shirtSize?.id,
     shirtSizeName: product.shirtSize?.name,
-    pantSizeId: product.pantSize?.id,
-    pantSizeName: product.pantSize?.name,
+    pantSizeId: product.pantsSize?.id,
+    pantSizeName: product.pantsSize?.name,
     cartItemId: product.id,
   };
 };
@@ -60,7 +60,7 @@ const findCartProductCond = () => {
       color: true,
       shoeSize: true,
       shirtSize: true,
-      pantSize: true,
+      pantsSize: true,
     },
   };
 };
@@ -71,7 +71,7 @@ exports.getCartItem = async (req, res, next) => {
 
     const getCartItem = await prisma.cartItem.findMany({
       where: {
-        buyerId: +userId,
+        buyerId: userId,
       },
       ...findCartProductCond(),
     });
@@ -105,8 +105,8 @@ exports.addCartItems = async (req, res, next) => {
         productId: +value.productId,
         colorId: +value.colorId,
         shirtSizeId: +value?.shirtSizeId,
-        shoeId: +value?.shoeId,
-        pantSizeId: +value?.pantSizeId,
+        shoeSizeId: +value?.shoeId,
+        pantsSizeId: +value?.pantSizeId,
       },
     });
 
@@ -118,8 +118,8 @@ exports.addCartItems = async (req, res, next) => {
           buyerId: userId,
           colorId: +value.colorId,
           shirtSizeId: +value?.shirtSizeId,
-          shoeId: +value?.shoeId,
-          pantSizeId: +value?.pantSizeId,
+          shoeSizeId: +value?.shoeId,
+          pantsSizeId: +value?.pantSizeId,
         },
         ...findCartProductCond(),
       });

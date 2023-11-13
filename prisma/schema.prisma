@@ -175,10 +175,10 @@ model CartItem {
   product     Product    @relation(fields: [productId], references: [id])
   colorId     Int        @map("color_id")
   color       Color      @relation(fields: [colorId], references: [id])
-  shoeId      Int?       @map("shoe_id")
-  shoeSize    ShoeSize?  @relation(fields: [shoeId], references: [id])
-  pantSizeId  Int?       @map("pant_size_id")
-  pantSize    PantsSize? @relation(fields: [pantSizeId], references: [id])
+  shoeSizeId  Int?       @map("shoe_size_id")
+  shoeSize    ShoeSize?  @relation(fields: [shoeSizeId], references: [id])
+  pantsSizeId Int?       @map("pants_size_id")
+  pantsSize   PantsSize? @relation(fields: [pantsSizeId], references: [id])
   shirtSizeId Int?       @map("shirt_size_id")
   shirtSize   ShirtSize? @relation(fields: [shirtSizeId], references: [id])
 
@@ -194,17 +194,19 @@ model WishItem {
 
   @@map("wish_items")
 }
+
 enum Status {
   PENDING
   SUCCESS
 }
+
 ////////////////////// Order //////////////////////
 model Order {
-  id       Int      @id @default(autoincrement())
-  createAt DateTime @default(now()) @map("create_at")
-  buyerId  Int      @map("buyer_id")
-  buyer    User     @relation("buyer", fields: [buyerId], references: [id])
-  status     Status      @default(PENDING)
+  id        Int         @id @default(autoincrement())
+  createAt  DateTime    @default(now()) @map("create_at")
+  buyerId   Int         @map("buyer_id")
+  buyer     User        @relation("buyer", fields: [buyerId], references: [id])
+  status    Status      @default(PENDING)
   OrderItem OrderItem[]
 
   @@map("orders")
