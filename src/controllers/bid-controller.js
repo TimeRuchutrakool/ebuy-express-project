@@ -110,6 +110,42 @@ exports.getBidProducts = async (req, res, next) => {
   }
 };
 
+exports.addBidProductToStripe = async (req, res, next) => {
+  try {
+    const bidProduct = await prisma.bidProduct.findFirst({
+      where: { id: +req.body.bidProductId },
+      include: {
+        ProductImage: true,
+      },
+    });
+
+    const createStripeProduct = await stripe.products.create({
+      name: bidProduct.name,
+      description: bidProduct.description,
+      images: [bidProduct.ProductImage[0].imageUrl],
+    });
+
+    const createStripePrice = await stripe.prices.create({
+      unit_amount: +req.body.latestBidPrice * 100,
+      currency: "thb",
+      billing_scheme: "per_unit",
+      product: `${createStripeProduct.id}`,
+    });
+
+    const updatedBidProduct = await prisma.bidProduct.update({
+      where: { id: +req.body.bidProductId },
+      data: {
+        stripeApiId: createStripePrice.id,
+        bidPrice: +req.body.latestBidPrice,
+        buyerId: req.user.id,
+      },
+    });
+    res.status(200).json({ updatedBidProduct });
+  } catch (error) {
+    next(error);
+  }
+};
+
 exports.bidCheckout = async (req, res, next) => {
   try {
     const productId = +req.body.productId;
@@ -126,7 +162,6 @@ exports.bidCheckout = async (req, res, next) => {
     //   };
     // });
 
-
     //  // checkout session
     //  const session = await stripe.checkout.sessions.create({
     //   success_url: "http://localhost:3000",
@@ -138,7 +173,6 @@ exports.bidCheckout = async (req, res, next) => {
     // });
 
     // res.json({ paymentUrl: session });
-
   } catch (error) {
     next(error);
   }
