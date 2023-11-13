@@ -84,14 +84,14 @@ exports.getMystore = async (req, res, next) => {
         ProductVariant: true,
       },
     });
-
+    console.log(product);
     const store = product.map((el) => {
       return {
         id: el.id,
         name: el.name,
         description: el.description,
         price: el.price,
-        imageUrl: el.ProductImage[0].imageUrl,
+        imageUrl: el.ProductImage[0]?.imageUrl,
         typeId: el.typeId,
         brandId: el.brandId,
         categoryId: el.categoryId,

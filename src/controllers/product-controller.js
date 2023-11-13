@@ -424,7 +424,7 @@ exports.getProductById = async (req, res, next) => {
         .json({ message: "This product is not available information" });
     const { users, types, brands, ProductImage, ProductVariant, category } =
       product;
-    console.log(product)
+    console.log(product);
     function removeNullValues(obj) {
       for (const key in obj) {
         if (obj[key] === null) {
@@ -620,6 +620,7 @@ exports.deleteProduct = async (req, res, next) => {
   try {
     const { value, error } = checkProductIdSchema.validate(req.params);
     console.log(value.productId);
+
     // console.log(error)
 
     if (error) {
@@ -627,6 +628,32 @@ exports.deleteProduct = async (req, res, next) => {
         .status(400)
         .json({ message: "This product is not available information" });
     }
+    const targetProduct = await prisma.product.findFirst({
+      where: {
+        id: +value.productId,
+      },
+    });
+
+    await prisma.review.deleteMany({
+      where: {
+        productId: +value.productId,
+      },
+    });
+    await prisma.cartItem.deleteMany({
+      where: {
+        productId: +value.productId,
+      },
+    });
+    await prisma.wishItem.deleteMany({
+      where: {
+        productId: +value.productId,
+      },
+    });
+    await prisma.orderItem.deleteMany({
+      where: {
+        productId: +value.productId,
+      },
+    });
 
     await prisma.productVariant.deleteMany({
       where: {
