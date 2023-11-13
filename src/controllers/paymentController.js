@@ -9,7 +9,7 @@ module.exports.catchCheckoutResult = async (request, response) => {
     event = stripe.webhooks.constructEvent(
       request.body,
       sig,
-      "whsec_o1LouciomgVU6uspoNrC90NtCpKjqbgK"
+      "whsec_4skt9na6SIP9JDEEM0kvMbA1wqLHEMCT"
     );
     // console.log(event);
   } catch (err) {
@@ -20,74 +20,125 @@ module.exports.catchCheckoutResult = async (request, response) => {
 
   if (event.type === "checkout.session.completed") {
     const checkoutSessionCompleted = event.data.object;
-    const transactionItems = JSON.parse(
-      checkoutSessionCompleted.metadata.transactionItems
-    );
-    const billTotal = transactionItems.reduce(
-      (acc, cur) => acc + Number(cur.billPerTransaction),
-      0
-    );
-      
-    // CREATE TRANSACTION
-    const transaction = await prisma.transaction.create({
-      data: {
-        id: checkoutSessionCompleted.id,
-        totalBill: billTotal,
-      },
-    });
-    console.log(transaction)
-    // CREATE TRANSACTION ITEMS FROM EACH SELLET
-    await prisma.transactionItem.createMany({
-      data: transactionItems.map((item) => {
-        return {
-          sellerId: item.sellerId,
-          buyerId: item.buyerId,
-          billPerTransaction: item.billPerTransaction,
-          transactionId: transaction.id,
-        };
-      }),
-    });
-    // CREATE ORDER
-    const order = await prisma.order.create({
-      data: {
-        buyerId: transactionItems[0].buyerId,
-      },
-    });
-    // CREATE ORDER ITEMS
-    const orderItemToCreate = transactionItems.map((item) => {
+    const { type } = checkoutSessionCompleted.metadata;
+    switch (type) {
+      case "regular":
+        regularWebhooks(response, checkoutSessionCompleted);
+        break;
+      case "auction":
+        auctionWebhooks(response, checkoutSessionCompleted);
+        break;
+
+      default:
+        break;
+    }
+  }
+};
+
+const regularWebhooks = async (response, checkoutSessionCompleted) => {
+  const transactionItems = JSON.parse(
+    checkoutSessionCompleted.metadata.transactionItems
+  );
+  const billTotal = transactionItems.reduce(
+    (acc, cur) => acc + Number(cur.billPerTransaction),
+    0
+  );
+
+  // CREATE TRANSACTION
+  const transaction = await prisma.transaction.create({
+    data: {
+      id: checkoutSessionCompleted.id,
+      totalBill: billTotal,
+    },
+  });
+  // CREATE TRANSACTION ITEMS FROM EACH SELLET
+  await prisma.transactionItem.createMany({
+    data: transactionItems.map((item) => {
       return {
-        amount: item.amount,
-        orderId: order.id,
-        productId: item.productId,
+        sellerId: item.sellerId,
+        buyerId: item.buyerId,
+        billPerTransaction: item.billPerTransaction,
         transactionId: transaction.id,
       };
-    });
-    await prisma.orderItem.createMany({
-      data: orderItemToCreate,
-    });
-    // DELETE CART ITEMS
-    await prisma.cartItem.deleteMany({
+    }),
+  });
+  // CREATE ORDER
+  const order = await prisma.order.create({
+    data: {
+      buyerId: transactionItems[0].buyerId,
+    },
+  });
+  // CREATE ORDER ITEMS
+  const orderItemToCreate = transactionItems.map((item) => {
+    return {
+      amount: item.amount,
+      orderId: order.id,
+      productId: item.productId,
+      transactionId: transaction.id,
+    };
+  });
+  await prisma.orderItem.createMany({
+    data: orderItemToCreate,
+  });
+  // DELETE CART ITEMS
+  await prisma.cartItem.deleteMany({
+    where: {
+      buyerId: transactionItems[0].buyerId,
+    },
+  });
+  // UPDATE STOCK
+  for (item of transactionItems) {
+    await prisma.productVariant.update({
       where: {
-        buyerId: transactionItems[0].buyerId,
+        id: item.productVariantId,
+      },
+      data: {
+        stock: {
+          decrement: item.amount,
+        },
       },
     });
-    // UPDATE STOCK
-    for (item of transactionItems) {
-      await prisma.productVariant.update({
-        where: {
-          id: item.productVariantId,
-        },
-        data: {
-          stock: {
-            decrement: item.amount,
-          },
-        },
-      });
-    }
-    console.log("------------------------succeeded------------------------");
   }
+  console.log("------------------------Regular------------------------");
 
   response.send();
 };
 
+const auctionWebhooks = async (response, checkoutSessionCompleted) => {
+  const transactionItems = JSON.parse(
+    checkoutSessionCompleted.metadata.transactionItems
+  );
+  // CREATE TRANSACTION
+  const transaction = await prisma.transaction.create({
+    data: {
+      id: checkoutSessionCompleted.id,
+      totalBill: +transactionItems.billPerTransaction,
+    },
+  });
+  const transactionItem = await prisma.transactionItem.create({
+    data: {
+      transactionId: transaction.id,
+      sellerId: transactionItems.sellerId,
+      buyerId: transactionItems.buyerId,
+      billPerTransaction: transactionItems.billPerTransaction,
+    },
+  });
+  // CREATE ORDER
+  const order = await prisma.order.create({
+    data: {
+      buyerId: transactionItems.buyerId,
+    },
+  });
+  await prisma.orderItem.create({
+    data: {
+      orderId: order.id,
+      bidProductId: transactionItems.productId,
+      amount: transactionItems.amount,
+      transactionId: transaction.id,
+    },
+  });
 
+  console.log("------------------------Auction------------------------");
+
+  response.send();
+};

@@ -221,10 +221,11 @@ exports.checkoutPayment = async (req, res, next) => {
 
     // checkout session
     const session = await stripe.checkout.sessions.create({
-      success_url: "http://localhost:3000",
+      success_url: "http://localhost:3001",
       line_items: productToCheckout,
       mode: "payment",
       metadata: {
+        type: "regular",
         transactionItems: JSON.stringify(transactionItems),
       },
     });

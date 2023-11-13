@@ -20,7 +20,11 @@ const {
   sendMessage,
   findRoom,
 } = require("./socket/chatSocket");
-const { joinBidingProduct, bidRequest, bidingFinished } = require("./socket/bidSocket");
+const {
+  joinBidingProduct,
+  bidRequest,
+  bidingFinished,
+} = require("./socket/bidSocket");
 
 const app = express();
 const httpServer = http.createServer(app);
@@ -60,8 +64,8 @@ io.of("/chat").on("connection", (socket) => {
 
 io.of("/bid").on("connection", (socket) => {
   joinBidingProduct(io, socket);
-  bidRequest(io,socket);
-  bidingFinished(socket)
+  bidRequest(io, socket);
+  bidingFinished(socket);
   socket.on("disconnect", () => console.log("Someone left."));
 });
 

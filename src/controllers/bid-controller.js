@@ -1,7 +1,7 @@
 const prisma = require("../models/prisma");
 const fs = require("fs/promises");
 const { upload } = require("../utils/cloudinaryServices");
-
+const stripe = require("stripe")(process.env.STRIPE_API_SK);
 const createError = require("../utils/create-error");
 
 exports.createBidProducts = async (req, res, next) => {
@@ -152,27 +152,30 @@ exports.bidCheckout = async (req, res, next) => {
     const product = await prisma.bidProduct.findFirst({
       where: { id: productId },
     });
+    // console.log(product);
 
-    // const transactionItems = cart.map((product) => {
-    //   return {
-    //     productId: product.product.id,
-    //     sellerId: product.product.sellerId,
-    //     buyerId: req.user.id,
-    //     billPerTransaction:
-    //   };
-    // });
+    const productToCheckout = [{ price: product.stripeApiId, quantity: 1 }];
 
-    //  // checkout session
-    //  const session = await stripe.checkout.sessions.create({
-    //   success_url: "http://localhost:3000",
-    //   line_items: productToCheckout,
-    //   mode: "payment",
-    //   metadata: {
-    //     transactionItems: JSON.stringify(transactionItems),
-    //   },
-    // });
+    const transactionItems = {
+      productId: product.id,
+      amount: 1,
+      sellerId: product.sellerId,
+      buyerId: product.buyerId,
+      billPerTransaction: product.bidPrice,
+    };
 
-    // res.json({ paymentUrl: session });
+    // checkout session
+    const session = await stripe.checkout.sessions.create({
+      success_url: "http://localhost:3001",
+      line_items: productToCheckout,
+      mode: "payment",
+      metadata: {
+        type: "auction",
+        transactionItems: JSON.stringify(transactionItems),
+      },
+    });
+    console.log(session);
+    res.json({ paymentUrl: session });
   } catch (error) {
     next(error);
   }
