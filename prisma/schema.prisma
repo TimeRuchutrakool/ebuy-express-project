@@ -235,7 +235,7 @@ model BidProduct {
   createdAt    DateTime       @default(now()) @map("created_at")
   updatedAt    DateTime?      @map("updated_at")
   bidPrice     Decimal?       @db.Decimal(10, 2)
-  stripeApiId    String?          @map("stripe_api_id")
+  stripeApiId  String?        @map("stripe_api_id")
   buyer        User?          @relation("buyer", fields: [buyerId], references: [id])
   buyerId      Int?           @map("buyer_id")
   sellerId     Int            @map("seller_id")

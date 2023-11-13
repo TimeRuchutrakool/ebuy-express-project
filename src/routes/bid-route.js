@@ -18,4 +18,5 @@ router.patch(
   authenticatedMiddleware,
   bidController.addBidProductToStripe
 );
+router.post("/checkout", authenticatedMiddleware, bidController.bidCheckout);
 module.exports = router;
