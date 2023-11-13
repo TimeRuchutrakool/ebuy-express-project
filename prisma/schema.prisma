@@ -194,14 +194,17 @@ model WishItem {
 
   @@map("wish_items")
 }
-
+enum Status {
+  PENDING
+  SUCCESS
+}
 ////////////////////// Order //////////////////////
 model Order {
   id       Int      @id @default(autoincrement())
   createAt DateTime @default(now()) @map("create_at")
   buyerId  Int      @map("buyer_id")
   buyer    User     @relation("buyer", fields: [buyerId], references: [id])
-
+  status     Status      @default(PENDING)
   OrderItem OrderItem[]
 
   @@map("orders")

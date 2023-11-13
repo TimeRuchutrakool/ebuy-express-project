@@ -53,3 +53,10 @@ const checkProductIdSchema = Joi.object({
   })
 
 exports.checkProductIdSchema = checkProductIdSchema
+
+const checkconfirmTrackSchema = Joi.object({
+  trackNum : Joi.string().required(),
+  logisticsName : Joi.string().required(),
+  id : Joi.number().required()
+})
+exports.checkconfirmTrackSchema = checkconfirmTrackSchema

@@ -9,7 +9,7 @@ module.exports.catchCheckoutResult = async (request, response) => {
     event = stripe.webhooks.constructEvent(
       request.body,
       sig,
-      "whsec_Wbq7rc46XddwK7ZJtHhtL394WLKTWNCP"
+      "whsec_o1LouciomgVU6uspoNrC90NtCpKjqbgK"
     );
     // console.log(event);
   } catch (err) {
@@ -27,7 +27,7 @@ module.exports.catchCheckoutResult = async (request, response) => {
       (acc, cur) => acc + Number(cur.billPerTransaction),
       0
     );
-
+      
     // CREATE TRANSACTION
     const transaction = await prisma.transaction.create({
       data: {
@@ -35,6 +35,7 @@ module.exports.catchCheckoutResult = async (request, response) => {
         totalBill: billTotal,
       },
     });
+    console.log(transaction)
     // CREATE TRANSACTION ITEMS FROM EACH SELLET
     await prisma.transactionItem.createMany({
       data: transactionItems.map((item) => {
