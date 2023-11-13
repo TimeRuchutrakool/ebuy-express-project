@@ -232,18 +232,19 @@ try {
     // // console.log(myOrderObject)
     //  const filteredOrders = findOrder.filter(order => order.OrderItem.every(item => item.trackNum === null && item.logisticsName === null));
     //  console.log(filteredOrders)
+    let filterOrders = findOrder.filter( el => el.status === "PENDING")
 
-     const data = findOrder.map( (el)=> {
+     const data = filterOrders.map( (el)=> {
       return {
         id : el.id,
         among : el.OrderItem.map(el => el.amount),
         trackNum : el.OrderItem.map(el => el.trackNum),
         logisticsName : el.OrderItem.map( el => el.logisticsName),
-        name : el.OrderItem.map( el => el.product.name),
-        price : el.OrderItem.map( el => el.product.price),
-        sellerFirstName : el.OrderItem.map( el => el.product.users.firstName),
-        sellerLastName : el.OrderItem.map( el => el.product.users.lastName),
-        imageUrl : el.OrderItem.map( el =>el.product.ProductImage[0].imageUrl)
+        name : el.OrderItem.map( el => el.product?.name),
+        price : el.OrderItem.map( el => el.product?.price),
+        sellerFirstName : el.OrderItem.map( el => el.product?.users.firstName),
+        sellerLastName : el.OrderItem.map( el => el.product?.users.lastName),
+        imageUrl : el.OrderItem.map( el =>el.product?.ProductImage[0].imageUrl)
       }
      })
      console.log(data)
@@ -258,7 +259,7 @@ try {
         price: item.price[0],
         sellerFirstName: item.sellerFirstName[0],
         sellerLastName: item.sellerLastName[0],
-        imageUrl: item.imageUrl[0],
+        imageUrl: item.imageUrl[0], 
       };
     });
     
@@ -290,6 +291,24 @@ exports.confirmTrack = async(req,res,next)=>{
   })
     console.log("update",update)
     res.status(200).json({message : "ok"})
+  } catch (err) {
+    next(err)
+  }
+}
+exports.confirmReceipt = async (req,res,next)=>{
+  try {
+      const userId = req.user.id
+      const data = req.body
+      const update = await prisma.order.update({
+        where :{
+          id : +data.id
+        },data :{
+          status : data.status
+        }
+      })
+      
+      console.log(data)
+    res.status(200).json({message :"ok"})
   } catch (err) {
     next(err)
   }
