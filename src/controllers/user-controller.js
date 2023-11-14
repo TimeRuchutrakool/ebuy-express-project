@@ -447,7 +447,6 @@ exports.getMyHistory = async (req, res,next) =>{
       el.time = dayjs(el.time).format('YYYY-MM-DD HH:mm');
     });
     
-
     res.status(200).json({myHistory: convertedData})
   } catch (err) {
     next(err)
