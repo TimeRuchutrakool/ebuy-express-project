@@ -20,6 +20,7 @@ module.exports.joinBidingProduct = (io, socket) => {
         imageUrl: bidProduct.ProductImage[0].imageUrl,
         timeRemainings:
           new Date(bidProduct.startedAt).getTime() +
+          7 * 60 * 60 * 1000 +
           Number(bidProduct.duration) -
           (Date.now() + 7 * 60 * 60 * 1000),
         name: bidProduct.name,
