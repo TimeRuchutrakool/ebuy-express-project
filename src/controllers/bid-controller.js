@@ -19,7 +19,7 @@ exports.createBidProducts = async (req, res, next) => {
         description: data.description,
         initialPrice: +data.price,
         sellerId: req.user.id,
-        startedAt: new Date(data.startedAt),
+        startedAt: new Date(`${data.startedAt}`),
         duration: +data.duration * 60 * 60 * 1000,
       },
     });
@@ -70,7 +70,9 @@ exports.getBidProductsById = async (req, res, next) => {
       name: data.name,
       description: data.description,
       initialPrice: data.initialPrice,
-      startedAt: data.startedAt,
+      startedAt: new Date(
+        new Date(data.startedAt).getTime() + 7 * 60 * 60 * 1000
+      ),
       sellerFirstName: data.seller.firstName,
       sellerLastName: data.seller.lastName,
       duration: +data.duration,
@@ -83,28 +85,38 @@ exports.getBidProductsById = async (req, res, next) => {
     next(err);
   }
 };
+
 exports.getBidProducts = async (req, res, next) => {
   try {
     const data = await prisma.bidProduct.findMany({
+      orderBy: { startedAt: "asc" },
       include: {
         ProductImage: true,
+        seller: true,
       },
     });
-    console.log(data);
-    const product = data.map((el) => {
+    const products = data.map((el) => {
       return {
         id: el.id,
         name: el.name,
         description: el.description,
         price: el.initialPrice,
-        startedAt: el.startedAt,
-        duration: el.duration,
+        startedAt: new Date(
+          new Date(el.startedAt).getTime() + 7 * 60 * 60 * 1000
+        ),
+        duration: +el.duration,
         sellerId: el.sellerId,
         imageUrl: el.ProductImage[0].imageUrl,
+        sellerName: el.seller.firstName + " " + el.seller.lastName,
       };
     });
-    console.log(product);
-    res.status(200).json({ bidProduct: product });
+
+    const bidProducts = products.filter(
+      (product) =>
+        new Date(product.startedAt).getTime() + product.duration >
+        Date.now() + 7 * 60 * 60 * 1000
+    );
+    res.status(200).json({ bidProducts });
   } catch (err) {
     next(err);
   }
@@ -152,7 +164,6 @@ exports.bidCheckout = async (req, res, next) => {
     const product = await prisma.bidProduct.findFirst({
       where: { id: productId },
     });
-    // console.log(product);
 
     const productToCheckout = [{ price: product.stripeApiId, quantity: 1 }];
 
