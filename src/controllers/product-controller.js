@@ -15,6 +15,7 @@ const {
 
 const { removeDuplicates } = require("../utils/helper");
 
+
 exports.createProduct = async (req, res, next) => {
   try {
     const sellerId = req.user.id;
@@ -677,3 +678,62 @@ exports.deleteProduct = async (req, res, next) => {
     next(error);
   }
 };
+
+exports.randomProduct = async (req,res,next)=> {
+  try {
+    const random = await prisma.productImage.count();
+    const skip = Math.floor(Math.random() * random);
+
+    const product = await prisma.productImage.findFirst({
+      where : {
+        id : skip
+      },
+      include : {
+        product : true
+      }
+    })
+
+    if(product===null) {
+      const product = await prisma.productImage.findFirst({
+        where : {
+          id : 47
+        },include : {
+          product : true
+        }
+      });
+      const randomProduct = 
+      {
+       id : product.product.id,
+       image : product.imageUrl,
+       name : product.product.name,
+       price : product.product.price,
+       description : product.product.description,
+       stripeApiId : product.product.stripeApiId,
+       sellerId : product.product.sellerId,
+       typeId : product.product.typeId,
+       brandId : product.product.brandId,
+       categoryId : product.product.categoryId
+     }
+      res.json({randomProduct})
+    }
+
+    const randomProduct = 
+       {
+        id : product.product.id,
+        image : product.imageUrl,
+        name : product.product.name,
+        price : product.product.price,
+        description : product.product.description,
+        stripeApiId : product.product.stripeApiId,
+        sellerId : product.product.sellerId,
+        typeId : product.product.typeId,
+        brandId : product.product.brandId,
+        categoryId : product.product.categoryId
+      }
+    
+ 
+    res.json({randomProduct})
+  } catch (error) {
+    next(error)
+  }
+}

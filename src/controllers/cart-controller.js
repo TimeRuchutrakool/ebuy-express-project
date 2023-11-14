@@ -105,8 +105,8 @@ exports.addCartItems = async (req, res, next) => {
         productId: +value.productId,
         colorId: +value.colorId,
         shirtSizeId: +value?.shirtSizeId,
-        shoeSizeId: +value?.shoeId,
-        pantsSizeId: +value?.pantSizeId,
+        shoeSizeId: +value?.shoeSizeId,
+        pantsSizeId: +value?.pantsSizeId,
       },
     });
 
@@ -118,8 +118,8 @@ exports.addCartItems = async (req, res, next) => {
           buyerId: userId,
           colorId: +value.colorId,
           shirtSizeId: +value?.shirtSizeId,
-          shoeSizeId: +value?.shoeId,
-          pantsSizeId: +value?.pantSizeId,
+          shoeSizeId: +value?.shoeSizeId,
+          pantsSizeId: +value?.pantsSizeId,
         },
         ...findCartProductCond(),
       });
