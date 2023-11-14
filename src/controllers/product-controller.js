@@ -15,6 +15,7 @@ const {
 
 const { removeDuplicates } = require("../utils/helper");
 
+
 exports.createProduct = async (req, res, next) => {
   try {
     const sellerId = req.user.id;

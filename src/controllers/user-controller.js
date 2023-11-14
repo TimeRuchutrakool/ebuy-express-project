@@ -3,7 +3,7 @@ const { upload } = require("../utils/cloudinaryServices");
 const fs = require("fs/promises");
 const createError = require("../utils/create-error");
 const { checkconfirmTrackSchema } = require("../validators/product-validator");
-
+const dayjs = require('dayjs')
 exports.updateProfileImage = async (req, res, next) => {
   try {
     const user = req.user;
@@ -289,7 +289,7 @@ exports.confirmTrack = async(req,res,next)=>{
         logisticsName :logisticsName
       }
   })
-    console.log("update",update)
+    console.log("update",update.count)
     res.status(200).json({message : "ok"})
   } catch (err) {
     next(err)
@@ -396,4 +396,59 @@ try {
 } catch (err) {
   next(err)
 }
+}
+exports.getMyHistory = async (req, res,next) =>{
+  try {
+    const userId = req.user.id
+    console.log(userId)
+    const findOrder = await prisma.order.findMany({
+      where :{
+        buyerId : userId
+      },include :{
+        OrderItem :{
+          include :{
+            product :{
+              include :{
+                ProductImage : true
+              }
+            }
+          }
+        }
+      }
+    })
+    console.log(findOrder)
+    const filterOrder = findOrder.filter( el => el.status !== "PENDING")
+    console.log(filterOrder)
+
+    const data = filterOrder.map(el => {
+      return {
+        id : el.id,
+        time : el.createAt,
+        among : el.OrderItem.map( el => el.amount),
+        price : el.OrderItem.map( el => el.product.price),
+        name : el.OrderItem.map( el => el.product.name),
+        imageUrl : el.OrderItem.map( el => el.product.ProductImage[0].imageUrl)
+        
+      }
+    })
+
+    const convertedData = data.map( el => {
+      return {
+        id : el.id,
+        time: el.time,
+        among : el.among[0],
+        price : el.price[0],
+        name : el.name[0],
+        imageUrl : el.imageUrl[0]
+      }
+    })
+
+    convertedData.forEach(el => {
+      el.time = dayjs(el.time).format('YYYY-MM-DD HH:mm');
+    });
+    
+    res.status(200).json({myHistory: convertedData})
+  } catch (err) {
+    next(err)
+  }
 }

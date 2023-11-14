@@ -34,4 +34,5 @@ router.get("/myOrder",authenticatedMiddleware,userController.getMyorder)
 router.patch("/track",authenticatedMiddleware,userController.confirmTrack)
 router.patch("/confirmReceipt",authenticatedMiddleware,userController.confirmReceipt)
 router.get("/mySale",authenticatedMiddleware,userController.getMySale)
+router.get("/myHistory",authenticatedMiddleware,userController.getMyHistory)
 module.exports = router;
