@@ -31,5 +31,7 @@ router.delete(
   productController.deleteProduct
 );
 
+router.get("/random",productController.randomProduct)
+
 
 module.exports = router;
