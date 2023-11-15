@@ -180,3 +180,39 @@ exports.bidCheckout = async (req, res, next) => {
     next(error);
   }
 };
+
+exports.getAllBidProductByUserId = async (req,res,next)=>{
+  try {
+    const {id : userId} = req.user
+    const find = await prisma.bidProduct.findMany({
+      where : {
+        sellerId : userId,
+      },
+      select : {
+        id : true,
+        ProductImage : true,
+        name : true,
+        description : true,
+        initialPrice : true,
+        startedAt : true
+      }     
+    });
+
+    const bidProduct = find.map(product=>{
+      return {
+        id : product.id,
+        image : product.ProductImage[0]?.imageUrl,
+        bidId : product.ProductImage?.bidProductId,
+        name : product?.name,
+        startAt : product?.startedAt,
+        price : product?.initialPrice,
+        description : product?.description
+      }
+    })
+   
+    res.json({bidProduct})
+  } catch (error) {
+    next(error)
+  }
+
+}
