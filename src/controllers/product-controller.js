@@ -15,7 +15,6 @@ const {
 
 const { removeDuplicates } = require("../utils/helper");
 
-
 exports.createProduct = async (req, res, next) => {
   try {
     const sellerId = req.user.id;
@@ -678,3 +677,81 @@ exports.deleteProduct = async (req, res, next) => {
     next(error);
   }
 };
+
+
+exports.randomProduct = async (req, res, next) => {
+  try {
+    const random = await prisma.product.findMany();
+    const randomValue = Math.floor(Math.random() * random.length);
+    const products = await prisma.product.findMany({
+      where: {
+        ProductImage: {
+          some: {}
+        }
+      },
+      include: {
+        ProductImage: true
+      }
+    });
+
+    const product = products[randomValue]
+
+
+    const randomProduct = 
+       {
+        id : product.id,
+        image : product.ProductImage[0]?.imageUrl,
+        name : product.name,
+        price : product.price,
+        description : product.description,
+        stripeApiId : product.stripeApiId,
+        sellerId : product.sellerId,
+        typeId : product.typeId,
+        brandId : product.brandId,
+        categoryId : product.categoryId
+      }
+    
+ 
+    res.json({randomProduct})
+  } catch (error) {
+    next(error);
+  }
+}
+
+module.exports.getSellerProducts = async (req, res, next) => {
+  try {
+    const userId = +req.params.userId;
+    const user = await prisma.user.findFirst({
+      where: {
+        id: userId,
+      },
+    });
+    let products = await prisma.product.findMany({
+      where: {
+        sellerId: userId,
+      },
+      include: {
+        ProductImage: true,
+      },
+    });
+    products = products.map((product) => {
+      return {
+        id: product.id,
+        name: product.name,
+        price: +product.price,
+        avgRating: product.avgRating,
+        imageUrl: product.ProductImage[0].imageUrl,
+      };
+    });
+    res.json({
+      seller: {
+        name: user.firstName + " " + user.lastName,
+        imageUrl: user.profileImage,
+      },
+      products,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+

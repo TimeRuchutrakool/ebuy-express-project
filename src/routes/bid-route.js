@@ -12,6 +12,7 @@ router.post(
   bidController.createBidProducts
 );
 router.get("/bidProductId/:bidProductId", bidController.getBidProductsById);
+router.get("/sellerBidProducts/:userId", bidController.getSellerBidProducts);
 router.get("/", bidController.getBidProducts);
 router.patch(
   "/addBidProdToStripe",
@@ -19,4 +20,5 @@ router.patch(
   bidController.addBidProductToStripe
 );
 router.post("/checkout", authenticatedMiddleware, bidController.bidCheckout);
+router.get('/getAllBidProductByUserId',authenticatedMiddleware,bidController.getAllBidProductByUserId)
 module.exports = router;
