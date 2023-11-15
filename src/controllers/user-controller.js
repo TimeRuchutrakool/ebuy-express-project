@@ -3,7 +3,9 @@ const { upload } = require("../utils/cloudinaryServices");
 const fs = require("fs/promises");
 const createError = require("../utils/create-error");
 const { checkconfirmTrackSchema } = require("../validators/product-validator");
-const dayjs = require('dayjs')
+const dayjs = require('dayjs');
+const sendMail = require("./sendMail");
+
 exports.updateProfileImage = async (req, res, next) => {
   try {
     const user = req.user;
@@ -272,15 +274,27 @@ try {
 }
 exports.confirmTrack = async(req,res,next)=>{
   try {
-   
+    // ส่งมาจากผู้ขาย 
     const { value,error }= checkconfirmTrackSchema.validate(req.body)
-
     const { trackNum,id,logisticsName }=value
-
+    const user = req.user
+    console.log(user)
     if (error) {
       return next(createError("Incorrect information", 400));
     }
 
+    const findUser = await prisma.order.findFirst({
+      where :{
+        id :id
+      }
+    })
+
+    const targetSendMail = await prisma.user.findFirst({
+      where :{
+        id :findUser.buyerId
+      }
+    })
+    
     const update = await prisma.orderItem.updateMany({
       where :{
         orderId : id
@@ -289,7 +303,10 @@ exports.confirmTrack = async(req,res,next)=>{
         logisticsName :logisticsName
       }
   })
-    console.log("update",update.count)
+    
+    let email = targetSendMail.email
+    sendMail.sendEmailNotificationTrack(email,trackNum,logisticsName)
+
     res.status(200).json({message : "ok"})
   } catch (err) {
     next(err)
@@ -297,7 +314,6 @@ exports.confirmTrack = async(req,res,next)=>{
 }
 exports.confirmReceipt = async (req,res,next)=>{
   try {
-      const userId = req.user.id
       const data = req.body
       const update = await prisma.order.update({
         where :{
@@ -306,7 +322,6 @@ exports.confirmReceipt = async (req,res,next)=>{
           status : data.status
         }
       })
-      
       console.log(data)
     res.status(200).json({message :"ok"})
   } catch (err) {
@@ -350,27 +365,7 @@ try {
     
     const find = findMySale.filter( el => el.trackNum === null)
     console.log(find)
-    // let  findProductVariant = findMySale.map(el => el.product.ProductVariant)
-    
-    
-  //   function removeNullAndNestedArrays(obj) {
-  //     if (Array.isArray(obj)) {
-  //         return obj.map(item => removeNullAndNestedArrays(item)).filter(item => item !== null);
-  //     } else if (obj !== null && typeof obj === 'object') {
-  //         const cleanedObj = {};
-  //         for (const key in obj) {
-  //             if (obj[key] !== null) {
-  //                 cleanedObj[key] = removeNullAndNestedArrays(obj[key]);
-  //             }
-  //         }
-  //         return cleanedObj;
-  //     } else {
-  //         return obj;
-  //     }
-  // }
-  // const cleanedData = removeNullAndNestedArrays(findProductVariant);
-  // console.log(cleanedData)
-  // const filteredOrders = findMySale.filter(order => order.OrderItem);
+
 
     const data = find.map( (el)=>{
       return {
@@ -380,15 +375,7 @@ try {
         logisticsName : el.logisticsName,
         name : el.product.name,
         imageUrl : el.product.ProductImage[0].imageUrl,
-        // productVariants : el.product.ProductVariant.map((el)=>{
-        //   return {
-        //     color : el.color.name,
-        //     shirtSize : el.shirtSize?.name,
-        //     pantSize : el.pantsSize?.name,
-        //     shoeSize : el.shoeSize?.name
-        //   }
-        // })
-        
+       
       }
     })
 

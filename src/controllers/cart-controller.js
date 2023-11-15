@@ -227,6 +227,7 @@ exports.checkoutPayment = async (req, res, next) => {
       metadata: {
         type: "regular",
         transactionItems: JSON.stringify(transactionItems),
+        user : JSON.stringify(req.user)
       },
     });
 
