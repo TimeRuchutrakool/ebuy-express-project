@@ -678,7 +678,7 @@ exports.deleteProduct = async (req, res, next) => {
   }
 };
 
-exports.randomProduct = async (req, res, next) => {
+
 exports.randomProduct = async (req, res, next) => {
   try {
     const random = await prisma.product.findMany();
@@ -716,4 +716,4 @@ exports.randomProduct = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
-}}
+}
