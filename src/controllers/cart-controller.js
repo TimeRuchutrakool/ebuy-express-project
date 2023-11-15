@@ -105,8 +105,8 @@ exports.addCartItems = async (req, res, next) => {
         productId: +value.productId,
         colorId: +value.colorId,
         shirtSizeId: +value?.shirtSizeId,
-        shoeSizeId: +value?.shoeId,
-        pantsSizeId: +value?.pantSizeId,
+        shoeSizeId: +value?.shoeSizeId,
+        pantsSizeId: +value?.pantsSizeId,
       },
     });
 
@@ -118,8 +118,8 @@ exports.addCartItems = async (req, res, next) => {
           buyerId: userId,
           colorId: +value.colorId,
           shirtSizeId: +value?.shirtSizeId,
-          shoeSizeId: +value?.shoeId,
-          pantsSizeId: +value?.pantSizeId,
+          shoeSizeId: +value?.shoeSizeId,
+          pantsSizeId: +value?.pantsSizeId,
         },
         ...findCartProductCond(),
       });
@@ -221,12 +221,13 @@ exports.checkoutPayment = async (req, res, next) => {
 
     // checkout session
     const session = await stripe.checkout.sessions.create({
-      success_url: "http://localhost:3001",
+      success_url: "http://localhost:3000/payment",
       line_items: productToCheckout,
       mode: "payment",
       metadata: {
         type: "regular",
         transactionItems: JSON.stringify(transactionItems),
+        user : JSON.stringify(req.user)
       },
     });
 

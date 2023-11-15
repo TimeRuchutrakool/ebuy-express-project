@@ -3,7 +3,9 @@ const { upload } = require("../utils/cloudinaryServices");
 const fs = require("fs/promises");
 const createError = require("../utils/create-error");
 const { checkconfirmTrackSchema } = require("../validators/product-validator");
-const dayjs = require('dayjs')
+const dayjs = require('dayjs');
+const sendMail = require("./sendMail");
+
 exports.updateProfileImage = async (req, res, next) => {
   try {
     const user = req.user;
@@ -61,8 +63,6 @@ exports.editProfile = async (req, res, next) => {
       select: {
         firstName: true,
         lastName: true,
-        address: true,
-        email: true,
       },
     });
 
@@ -202,54 +202,56 @@ exports.getEditProductById = async (req, res, next) => {
     next(err);
   }
 };
-exports.getMyorder = async (req,res,next) => {
-try {
-     const userId = req.user.id
-     console.log(userId)
+exports.getMyorder = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    console.log(userId);
 
-     const findOrder = await prisma.order.findMany({
-      where :{
-        buyerId :userId
-      },include :{
-        OrderItem : {
-          include :{
-            product : {
-              include :{
-                ProductImage : true,
-                users : true
-              }
-            }
-          }
-        }
-        
-      },orderBy : {
-        id : "desc"
-      }
-     })
-     console.log(findOrder)
+    const findOrder = await prisma.order.findMany({
+      where: {
+        buyerId: userId,
+      },
+      include: {
+        OrderItem: {
+          include: {
+            product: {
+              include: {
+                ProductImage: true,
+                users: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        id: "desc",
+      },
+    });
+    console.log(findOrder);
 
-    
     // // console.log(myOrderObject)
     //  const filteredOrders = findOrder.filter(order => order.OrderItem.every(item => item.trackNum === null && item.logisticsName === null));
     //  console.log(filteredOrders)
-    let filterOrders = findOrder.filter( el => el.status === "PENDING")
+    let filterOrders = findOrder.filter((el) => el.status === "PENDING");
 
-     const data = filterOrders.map( (el)=> {
+    const data = filterOrders.map((el) => {
       return {
-        id : el.id,
-        among : el.OrderItem.map(el => el.amount),
-        trackNum : el.OrderItem.map(el => el.trackNum),
-        logisticsName : el.OrderItem.map( el => el.logisticsName),
-        name : el.OrderItem.map( el => el.product?.name),
-        price : el.OrderItem.map( el => el.product?.price),
-        sellerFirstName : el.OrderItem.map( el => el.product?.users.firstName),
-        sellerLastName : el.OrderItem.map( el => el.product?.users.lastName),
-        imageUrl : el.OrderItem.map( el =>el.product?.ProductImage[0].imageUrl)
-      }
-     })
-     console.log(data)
+        id: el.id,
+        among: el.OrderItem.map((el) => el.amount),
+        trackNum: el.OrderItem.map((el) => el.trackNum),
+        logisticsName: el.OrderItem.map((el) => el.logisticsName),
+        name: el.OrderItem.map((el) => el.product?.name),
+        price: el.OrderItem.map((el) => el.product?.price),
+        sellerFirstName: el.OrderItem.map((el) => el.product?.users.firstName),
+        sellerLastName: el.OrderItem.map((el) => el.product?.users.lastName),
+        imageUrl: el.OrderItem.map(
+          (el) => el.product?.ProductImage[0].imageUrl
+        ),
+      };
+    });
+    console.log(data);
 
-     const convertedData = data.map((item) => {
+    const convertedData = data.map((item) => {
       return {
         id: item.id,
         among: item.among[0],
@@ -259,28 +261,40 @@ try {
         price: item.price[0],
         sellerFirstName: item.sellerFirstName[0],
         sellerLastName: item.sellerLastName[0],
-        imageUrl: item.imageUrl[0], 
+        imageUrl: item.imageUrl[0],
       };
     });
-    
+
     console.log(convertedData);
 
-  res.status(200).json({myOrder : convertedData})
-} catch (err) {
-  next(err)
-}
-}
-exports.confirmTrack = async(req,res,next)=>{
+    res.status(200).json({ myOrder: convertedData });
+  } catch (err) {
+    next(err);
+  }
+};
+exports.confirmTrack = async (req, res, next) => {
   try {
-   
+    // ส่งมาจากผู้ขาย 
     const { value,error }= checkconfirmTrackSchema.validate(req.body)
-
     const { trackNum,id,logisticsName }=value
-
+    const user = req.user
+    console.log(user)
     if (error) {
       return next(createError("Incorrect information", 400));
     }
 
+    const findUser = await prisma.order.findFirst({
+      where :{
+        id :id
+      }
+    })
+
+    const targetSendMail = await prisma.user.findFirst({
+      where :{
+        id :findUser.buyerId
+      }
+    })
+    
     const update = await prisma.orderItem.updateMany({
       where :{
         orderId : id
@@ -289,15 +303,17 @@ exports.confirmTrack = async(req,res,next)=>{
         logisticsName :logisticsName
       }
   })
-    console.log("update",update.count)
+    
+    let email = targetSendMail.email
+    sendMail.sendEmailNotificationTrack(email,trackNum,logisticsName)
+
     res.status(200).json({message : "ok"})
   } catch (err) {
-    next(err)
+    next(err);
   }
-}
-exports.confirmReceipt = async (req,res,next)=>{
+};
+exports.confirmReceipt = async (req, res, next) => {
   try {
-      const userId = req.user.id
       const data = req.body
       const update = await prisma.order.update({
         where :{
@@ -306,36 +322,35 @@ exports.confirmReceipt = async (req,res,next)=>{
           status : data.status
         }
       })
-      
       console.log(data)
     res.status(200).json({message :"ok"})
   } catch (err) {
-    next(err)
+    next(err);
   }
-}
-exports.getMySale = async (req,res,next) =>{
-try {
-    
-    const userId = req.user.id
-    console.log(userId)
+};
+exports.getMySale = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    console.log(userId);
     const findMyProduct = await prisma.product.findMany({
-      where :{
-        sellerId : userId
-      }
-    })
-    console.log(findMyProduct)
-    const myProductId = findMyProduct.map( el => el.id)
-    console.log(myProductId)
+      where: {
+        sellerId: userId,
+      },
+    });
+    console.log(findMyProduct);
+    const myProductId = findMyProduct.map((el) => el.id);
+    console.log(myProductId);
     const findMySale = await prisma.orderItem.findMany({
-      where : {
-        productId : {
-          in :myProductId
-        }
-      },include :{
-        product : {
-          include :{
-            ProductImage : true,
-            ProductVariant : {
+      where: {
+        productId: {
+          in: myProductId,
+        },
+      },
+      include: {
+        product: {
+          include: {
+            ProductImage: true,
+            ProductVariant: {
               include: {
                 color: true,
                 shoeSize: true,
@@ -350,29 +365,9 @@ try {
     
     const find = findMySale.filter( el => el.trackNum === null)
     console.log(find)
-    // let  findProductVariant = findMySale.map(el => el.product.ProductVariant)
-    
-    
-  //   function removeNullAndNestedArrays(obj) {
-  //     if (Array.isArray(obj)) {
-  //         return obj.map(item => removeNullAndNestedArrays(item)).filter(item => item !== null);
-  //     } else if (obj !== null && typeof obj === 'object') {
-  //         const cleanedObj = {};
-  //         for (const key in obj) {
-  //             if (obj[key] !== null) {
-  //                 cleanedObj[key] = removeNullAndNestedArrays(obj[key]);
-  //             }
-  //         }
-  //         return cleanedObj;
-  //     } else {
-  //         return obj;
-  //     }
-  // }
-  // const cleanedData = removeNullAndNestedArrays(findProductVariant);
-  // console.log(cleanedData)
-  // const filteredOrders = findMySale.filter(order => order.OrderItem);
 
-    const data = find.map( (el)=>{
+
+    const data = find.map((el) => {
       return {
         id : el.orderId,
         among : el.amount,
@@ -380,15 +375,7 @@ try {
         logisticsName : el.logisticsName,
         name : el.product.name,
         imageUrl : el.product.ProductImage[0].imageUrl,
-        // productVariants : el.product.ProductVariant.map((el)=>{
-        //   return {
-        //     color : el.color.name,
-        //     shirtSize : el.shirtSize?.name,
-        //     pantSize : el.pantsSize?.name,
-        //     shoeSize : el.shoeSize?.name
-        //   }
-        // })
-        
+       
       }
     })
 
@@ -399,56 +386,56 @@ try {
 }
 exports.getMyHistory = async (req, res,next) =>{
   try {
-    const userId = req.user.id
-    console.log(userId)
+    const userId = req.user.id;
+    console.log(userId);
     const findOrder = await prisma.order.findMany({
-      where :{
-        buyerId : userId
-      },include :{
-        OrderItem :{
-          include :{
-            product :{
-              include :{
-                ProductImage : true
-              }
-            }
-          }
-        }
-      }
-    })
-    console.log(findOrder)
-    const filterOrder = findOrder.filter( el => el.status !== "PENDING")
-    console.log(filterOrder)
-
-    const data = filterOrder.map(el => {
-      return {
-        id : el.id,
-        time : el.createAt,
-        among : el.OrderItem.map( el => el.amount),
-        price : el.OrderItem.map( el => el.product.price),
-        name : el.OrderItem.map( el => el.product.name),
-        imageUrl : el.OrderItem.map( el => el.product.ProductImage[0].imageUrl)
-        
-      }
-    })
-
-    const convertedData = data.map( el => {
-      return {
-        id : el.id,
-        time: el.time,
-        among : el.among[0],
-        price : el.price[0],
-        name : el.name[0],
-        imageUrl : el.imageUrl[0]
-      }
-    })
-
-    convertedData.forEach(el => {
-      el.time = dayjs(el.time).format('YYYY-MM-DD HH:mm');
+      where: {
+        buyerId: userId,
+      },
+      include: {
+        OrderItem: {
+          include: {
+            product: {
+              include: {
+                ProductImage: true,
+              },
+            },
+          },
+        },
+      },
     });
-    
-    res.status(200).json({myHistory: convertedData})
+    console.log(findOrder);
+    const filterOrder = findOrder.filter((el) => el.status !== "PENDING");
+    console.log(filterOrder);
+
+    const data = filterOrder.map((el) => {
+      return {
+        id: el.id,
+        time: el.createAt,
+        among: el.OrderItem.map((el) => el.amount),
+        price: el.OrderItem.map((el) => el.product.price),
+        name: el.OrderItem.map((el) => el.product.name),
+        imageUrl: el.OrderItem.map((el) => el.product.ProductImage[0].imageUrl),
+      };
+    });
+
+    const convertedData = data.map((el) => {
+      return {
+        id: el.id,
+        time: el.time,
+        among: el.among[0],
+        price: el.price[0],
+        name: el.name[0],
+        imageUrl: el.imageUrl[0],
+      };
+    });
+
+    convertedData.forEach((el) => {
+      el.time = dayjs(el.time).format("YYYY-MM-DD HH:mm");
+    });
+
+    res.status(200).json({ myHistory: convertedData });
   } catch (err) {
-    next(err)
+    next(err);
   }
-}
+};

@@ -17,9 +17,12 @@ dependencies:
   cors:
     specifier: ^2.8.5
     version: 2.8.5
+<<<<<<< HEAD
+=======
   dayjs:
     specifier: ^1.11.10
     version: 1.11.10
+>>>>>>> develop
   dotenv:
     specifier: ^16.3.1
     version: 16.3.1
@@ -38,6 +41,9 @@ dependencies:
   multer:
     specifier: 1.4.5-lts.1
     version: 1.4.5-lts.1
+  nodemailer:
+    specifier: ^6.9.7
+    version: 6.9.7
   prisma:
     specifier: ^5.5.2
     version: 5.5.2
@@ -361,10 +367,13 @@ packages:
       vary: 1.1.2
     dev: false
 
+<<<<<<< HEAD
+=======
   /dayjs@1.11.10:
     resolution: {integrity: sha512-vjAczensTgRcqDERK0SR2XMwsF/tSvnvlv6VcF2GIhg6Sx4yOIt/irsr1RDJsKiIyBzJDpCoXiWWq28MqH2cnQ==}
     dev: false
 
+>>>>>>> develop
   /debug@2.6.9:
     resolution: {integrity: sha512-bC7ElrdJaJnPbAP+1EotYvqZsb3ecl5wi6Bfi6BJTUcNowp6cvspg0jXznRTKDjm/E7AdgFBVeAPVMNcKGsHMA==}
     peerDependencies:
@@ -894,6 +903,11 @@ packages:
         optional: true
     dependencies:
       whatwg-url: 5.0.0
+    dev: false
+
+  /nodemailer@6.9.7:
+    resolution: {integrity: sha512-rUtR77ksqex/eZRLmQ21LKVH5nAAsVicAtAYudK7JgwenEDZ0UIQ1adUGqErz7sMkWYxWTTU1aeP2Jga6WQyJw==}
+    engines: {node: '>=6.0.0'}
     dev: false
 
   /nopt@5.0.0:
