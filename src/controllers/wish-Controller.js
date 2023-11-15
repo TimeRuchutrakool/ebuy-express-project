@@ -18,6 +18,7 @@ exports.getWish = async (req, res, next) => {
           select: {
             name: true,
             price: true,
+            sellerId: true,
             ProductImage: {
               select: {
                 imageUrl: true,
@@ -27,12 +28,38 @@ exports.getWish = async (req, res, next) => {
         },
       },
     });
+
+    const seller = await prisma.wishItem.findMany({
+      where: {
+        buyerId: userId,
+      },
+      include: {
+        product: {
+          include: {
+            users: {
+              select: {
+                firstName: true,
+                lastName: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    seller.map(
+      (seller, idx) =>
+        (getWish[idx].seller =
+          seller.product.users.firstName + " " + seller.product.users.lastName)
+    );
+
     const products = getWish.map((product) => {
       return {
         id: product.productId,
         name: product.product.name,
         price: product.product.price,
         imageUrl: product.product.ProductImage[0].imageUrl,
+        seller: product.seller,
       };
     });
 
