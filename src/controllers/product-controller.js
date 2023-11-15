@@ -678,62 +678,45 @@ exports.deleteProduct = async (req, res, next) => {
   }
 };
 
+
 exports.randomProduct = async (req, res, next) => {
   try {
-    const random = await prisma.productImage.count();
-    const skip = Math.floor(Math.random() * random);
-
-    const product = await prisma.productImage.findFirst({
+    const random = await prisma.product.findMany();
+    const randomValue = Math.floor(Math.random() * random.length);
+    const products = await prisma.product.findMany({
       where: {
-        id: skip,
+        ProductImage: {
+          some: {}
+        }
       },
       include: {
-        product: true,
-      },
+        ProductImage: true
+      }
     });
 
-    if (product === null) {
-      const product = await prisma.productImage.findFirst({
-        where: {
-          id: 47,
-        },
-        include: {
-          product: true,
-        },
-      });
-      const randomProduct = {
-        id: product.product.id,
-        image: product.imageUrl,
-        name: product.product.name,
-        price: product.product.price,
-        description: product.product.description,
-        stripeApiId: product.product.stripeApiId,
-        sellerId: product.product.sellerId,
-        typeId: product.product.typeId,
-        brandId: product.product.brandId,
-        categoryId: product.product.categoryId,
-      };
-      res.json({ randomProduct });
-    }
+    const product = products[randomValue]
 
-    const randomProduct = {
-      id: product.product.id,
-      image: product.imageUrl,
-      name: product.product.name,
-      price: product.product.price,
-      description: product.product.description,
-      stripeApiId: product.product.stripeApiId,
-      sellerId: product.product.sellerId,
-      typeId: product.product.typeId,
-      brandId: product.product.brandId,
-      categoryId: product.product.categoryId,
-    };
 
-    res.json({ randomProduct });
+    const randomProduct = 
+       {
+        id : product.id,
+        image : product.ProductImage[0]?.imageUrl,
+        name : product.name,
+        price : product.price,
+        description : product.description,
+        stripeApiId : product.stripeApiId,
+        sellerId : product.sellerId,
+        typeId : product.typeId,
+        brandId : product.brandId,
+        categoryId : product.categoryId
+      }
+    
+ 
+    res.json({randomProduct})
   } catch (error) {
     next(error);
   }
-};
+}
 
 module.exports.getSellerProducts = async (req, res, next) => {
   try {
@@ -771,3 +754,4 @@ module.exports.getSellerProducts = async (req, res, next) => {
     next(error);
   }
 };
+
