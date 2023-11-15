@@ -1,5 +1,7 @@
 const prisma = require("../models/prisma");
 const { v4: uuidv4 } = require("uuid");
+const fs = require("fs/promises");
+const { upload } = require("../utils/cloudinaryServices");
 
 module.exports.getChatList = (socket) => {
   socket.on("getChatList", async (data, cb) => {
@@ -41,31 +43,52 @@ module.exports.joinRoom = (io, socket) => {
 
 module.exports.sendMessage = (io, socket) => {
   socket.on("sendMessage", async (data) => {
-    socket.join(`${data.roomId}`);
-    const messageId = uuidv4() + Date.now();
-    io.of("/chat").in(`${data.roomId}`).emit("receivedMessage", {
-      id: messageId,
-      content: data.content,
-      chatroomId: data.roomId,
-      senderId: data.senderId,
-      sendAt: Date.now(),
-    });
-    await prisma.message.create({
-      data: {
-        id: messageId,
-        content: data.content,
-        chatroomId: data.roomId,
-        senderId: data.senderId,
-      },
-    });
-    await prisma.chatroom.update({
-      where: {
-        id: data.roomId,
-      },
-      data: {
-        latestMessageTime: new Date(),
-      },
-    });
+    try {
+      socket.join(`${data.roomId}`);
+      let url;
+      if (data.type === "IMAGE") {
+        const controller = new AbortController();
+        const { signal } = controller;
+        const path = `public/${uuidv4()}.jpeg`;
+        await fs.writeFile(path, data.content, { signal });
+        controller.abort();
+        url = await upload(path);
+        fs.unlink(path, (err) => {
+          if (err) throw err;
+        });
+      }
+
+      const messageId = uuidv4() + Date.now();
+      io.of("/chat")
+        .in(`${data.roomId}`)
+        .emit("receivedMessage", {
+          id: messageId,
+          content: url ? url : data.content,
+          chatroomId: data.roomId,
+          senderId: data.senderId,
+          sendAt: Date.now(),
+          type: data.type,
+        });
+      await prisma.message.create({
+        data: {
+          id: messageId,
+          content: url ? url : data.content,
+          chatroomId: data.roomId,
+          senderId: data.senderId,
+          type: data.type,
+        },
+      });
+      await prisma.chatroom.update({
+        where: {
+          id: data.roomId,
+        },
+        data: {
+          latestMessageTime: new Date(),
+        },
+      });
+    } catch (error) {
+      console.log(error);
+    }
   });
 };
 

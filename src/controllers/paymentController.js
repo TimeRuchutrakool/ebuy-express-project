@@ -1,6 +1,7 @@
 const stripe = require("stripe")(process.env.STRIPE_API_SK);
 const prisma = require("../models/prisma");
 const sendEmails = require('./sendMail')
+const { auctioningRooms } = require("../socket/auctionRoom");
 
 module.exports.catchCheckoutResult = async (request, response) => {
   const sig = request.headers["stripe-signature"];
@@ -158,7 +159,8 @@ const auctionWebhooks = async (response, checkoutSessionCompleted) => {
       point: { increment: +transactionItems.billPerTransaction * 0.1 },
     },
   });
-  console.log("order",order)
+
+  delete auctioningRooms[`${transactionItems.id}`]
 
   console.log("------------------------Auction------------------------");
   

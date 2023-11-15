@@ -272,6 +272,7 @@ model Message {
   chatroomId Int      @map("chatroom_id")
   senderId   Int      @map("sender_id")
   user       User     @relation(fields: [senderId], references: [id])
+  type       String
 
   @@map("messages")
 }
