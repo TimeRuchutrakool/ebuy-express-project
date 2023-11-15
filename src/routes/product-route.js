@@ -25,13 +25,13 @@ router.get("/productId/:productId", productController.getProductById);
 router.get("/productPopular", productController.getProductPopular);
 router.get("/review/:productId", productController.getReviewProduct);
 router.post("/review", authenticates, productController.createReview);
+router.get("/sellerProducts/:userId", productController.getSellerProducts);
 router.delete(
   "/delete/:productId",
   authenticates,
   productController.deleteProduct
 );
 
-router.get("/random",productController.randomProduct)
-
+router.get("/random", productController.randomProduct);
 
 module.exports = router;

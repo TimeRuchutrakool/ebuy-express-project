@@ -15,7 +15,6 @@ const {
 
 const { removeDuplicates } = require("../utils/helper");
 
-
 exports.createProduct = async (req, res, next) => {
   try {
     const sellerId = req.user.id;
@@ -679,61 +678,96 @@ exports.deleteProduct = async (req, res, next) => {
   }
 };
 
-exports.randomProduct = async (req,res,next)=> {
+exports.randomProduct = async (req, res, next) => {
   try {
     const random = await prisma.productImage.count();
     const skip = Math.floor(Math.random() * random);
 
     const product = await prisma.productImage.findFirst({
-      where : {
-        id : skip
+      where: {
+        id: skip,
       },
-      include : {
-        product : true
-      }
-    })
+      include: {
+        product: true,
+      },
+    });
 
-    if(product===null) {
+    if (product === null) {
       const product = await prisma.productImage.findFirst({
-        where : {
-          id : 47
-        },include : {
-          product : true
-        }
+        where: {
+          id: 47,
+        },
+        include: {
+          product: true,
+        },
       });
-      const randomProduct = 
-      {
-       id : product.product.id,
-       image : product.imageUrl,
-       name : product.product.name,
-       price : product.product.price,
-       description : product.product.description,
-       stripeApiId : product.product.stripeApiId,
-       sellerId : product.product.sellerId,
-       typeId : product.product.typeId,
-       brandId : product.product.brandId,
-       categoryId : product.product.categoryId
-     }
-      res.json({randomProduct})
+      const randomProduct = {
+        id: product.product.id,
+        image: product.imageUrl,
+        name: product.product.name,
+        price: product.product.price,
+        description: product.product.description,
+        stripeApiId: product.product.stripeApiId,
+        sellerId: product.product.sellerId,
+        typeId: product.product.typeId,
+        brandId: product.product.brandId,
+        categoryId: product.product.categoryId,
+      };
+      res.json({ randomProduct });
     }
 
-    const randomProduct = 
-       {
-        id : product.product.id,
-        image : product.imageUrl,
-        name : product.product.name,
-        price : product.product.price,
-        description : product.product.description,
-        stripeApiId : product.product.stripeApiId,
-        sellerId : product.product.sellerId,
-        typeId : product.product.typeId,
-        brandId : product.product.brandId,
-        categoryId : product.product.categoryId
-      }
-    
- 
-    res.json({randomProduct})
+    const randomProduct = {
+      id: product.product.id,
+      image: product.imageUrl,
+      name: product.product.name,
+      price: product.product.price,
+      description: product.product.description,
+      stripeApiId: product.product.stripeApiId,
+      sellerId: product.product.sellerId,
+      typeId: product.product.typeId,
+      brandId: product.product.brandId,
+      categoryId: product.product.categoryId,
+    };
+
+    res.json({ randomProduct });
   } catch (error) {
-    next(error)
+    next(error);
   }
-}
+};
+
+module.exports.getSellerProducts = async (req, res, next) => {
+  try {
+    const userId = +req.params.userId;
+    const user = await prisma.user.findFirst({
+      where: {
+        id: userId,
+      },
+    });
+    let products = await prisma.product.findMany({
+      where: {
+        sellerId: userId,
+      },
+      include: {
+        ProductImage: true,
+      },
+    });
+    products = products.map((product) => {
+      return {
+        id: product.id,
+        name: product.name,
+        price: +product.price,
+        avgRating: product.avgRating,
+        imageUrl: product.ProductImage[0].imageUrl,
+      };
+    });
+    res.json({
+      seller: {
+        name: user.firstName + " " + user.lastName,
+        imageUrl: user.profileImage,
+      },
+      products,
+    });
+  } catch (error) {
+    next(error);
+  }
+};

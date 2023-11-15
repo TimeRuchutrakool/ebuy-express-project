@@ -191,3 +191,41 @@ exports.bidCheckout = async (req, res, next) => {
     next(error);
   }
 };
+
+exports.getSellerBidProducts = async (req, res, next) => {
+  try {
+    const userId = +req.params.userId;
+    const data = await prisma.bidProduct.findMany({
+      where: { sellerId: userId },
+      orderBy: { startedAt: "asc" },
+      include: {
+        ProductImage: true,
+        seller: true,
+      },
+    });
+    const products = data.map((el) => {
+      return {
+        id: el.id,
+        name: el.name,
+        description: el.description,
+        price: el.initialPrice,
+        startedAt: new Date(
+          new Date(el.startedAt).getTime() + 7 * 60 * 60 * 1000
+        ),
+        duration: +el.duration,
+        sellerId: el.sellerId,
+        imageUrl: el.ProductImage[0].imageUrl,
+        sellerName: el.seller.firstName + " " + el.seller.lastName,
+      };
+    });
+
+    const bidProducts = products.filter(
+      (product) =>
+        new Date(product.startedAt).getTime() + product.duration >
+        Date.now() + 7 * 60 * 60 * 1000
+    );
+    res.status(200).json({ bidProducts });
+  } catch (err) {
+    next(err);
+  }
+};
