@@ -1,5 +1,6 @@
 const stripe = require("stripe")(process.env.STRIPE_API_SK);
 const prisma = require("../models/prisma");
+const sendEmails = require('./sendMail')
 
 module.exports.catchCheckoutResult = async (request, response) => {
   const sig = request.headers["stripe-signature"];
@@ -9,7 +10,7 @@ module.exports.catchCheckoutResult = async (request, response) => {
     event = stripe.webhooks.constructEvent(
       request.body,
       sig,
-      "whsec_4skt9na6SIP9JDEEM0kvMbA1wqLHEMCT"
+      "whsec_o7cIp97bZGx10eDqP8uEBg2zFqIgxl0f"
     );
     // console.log(event);
   } catch (err) {
@@ -43,7 +44,9 @@ const regularWebhooks = async (response, checkoutSessionCompleted) => {
     (acc, cur) => acc + Number(cur.billPerTransaction),
     0
   );
-
+    const user = JSON.parse(
+      checkoutSessionCompleted.metadata.user
+    )
   // CREATE TRANSACTION
   const transaction = await prisma.transaction.create({
     data: {
@@ -106,7 +109,13 @@ const regularWebhooks = async (response, checkoutSessionCompleted) => {
     },
   });
   console.log("------------------------Regular------------------------");
+  console.log(order)
+  console.log(user)
 
+  const userEmail= user.email
+  const orderId =order.id
+
+  sendEmails.sendEmailOrderConfirmation(userEmail,orderId)
   response.send();
 };
 
@@ -149,8 +158,9 @@ const auctionWebhooks = async (response, checkoutSessionCompleted) => {
       point: { increment: +transactionItems.billPerTransaction * 0.1 },
     },
   });
+  console.log("order",order)
 
   console.log("------------------------Auction------------------------");
-
+  
   response.send();
 };
