@@ -12,6 +12,7 @@ router.post(
   bidController.createBidProducts
 );
 router.get("/bidProductId/:bidProductId", bidController.getBidProductsById);
+router.get("/sellerBidProducts/:userId", bidController.getSellerBidProducts);
 router.get("/", bidController.getBidProducts);
 router.patch(
   "/addBidProdToStripe",

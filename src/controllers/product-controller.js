@@ -679,6 +679,7 @@ exports.deleteProduct = async (req, res, next) => {
 };
 
 exports.randomProduct = async (req, res, next) => {
+exports.randomProduct = async (req, res, next) => {
   try {
     const random = await prisma.product.findMany();
     const randomValue = Math.floor(Math.random() * random.length);
@@ -696,22 +697,23 @@ exports.randomProduct = async (req, res, next) => {
     const product = products[randomValue]
 
 
-    const randomProduct =
+    const randomProduct = 
        {
-        id : product.id,
-        image : product.ProductImage[0]?.imageUrl,
-        name : product.name,
-        price : product.price,
-        description : product.description,
-        stripeApiId : product.stripeApiId,
-        sellerId : product.sellerId,
-        typeId : product.typeId,
-        brandId : product.brandId,
-        categoryId : product.categoryId
+        id : product.product.id,
+        image : product.imageUrl,
+        name : product.product.name,
+        price : product.product.price,
+        description : product.product.description,
+        stripeApiId : product.product.stripeApiId,
+        sellerId : product.product.sellerId,
+        typeId : product.product.typeId,
+        brandId : product.product.brandId,
+        categoryId : product.product.categoryId
       }
-
-    res.json({ randomProduct});
+    
+ 
+    res.json({randomProduct})
   } catch (error) {
     next(error);
   }
-};
+}}
