@@ -29,7 +29,7 @@ exports.getWish = async (req, res, next) => {
     });
     const products = getWish.map((product) => {
       return {
-        id: product.product.productId,
+        id: product.productId,
         name: product.product.name,
         price: product.product.price,
         imageUrl: product.product.ProductImage[0].imageUrl,
