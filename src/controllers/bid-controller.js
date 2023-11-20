@@ -106,7 +106,7 @@ exports.getBidProducts = async (req, res, next) => {
         ),
         duration: +el.duration,
         sellerId: el.sellerId,
-        imageUrl: el.ProductImage[0].imageUrl,
+        imageUrl: el.ProductImage[0]?.imageUrl,
         sellerName: el.seller.firstName + " " + el.seller.lastName,
       };
     });
@@ -116,6 +116,7 @@ exports.getBidProducts = async (req, res, next) => {
         new Date(product.startedAt).getTime() + product.duration >
         Date.now() + 7 * 60 * 60 * 1000
     );
+    console.log(bidProducts)
     res.status(200).json({ bidProducts });
   } catch (err) {
     next(err);
